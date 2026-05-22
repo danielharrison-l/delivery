@@ -11,6 +11,7 @@
     "db:generate": "pnpm --filter @repo/api db:generate",
     "db:migrate": "pnpm --filter @repo/api db:migrate",
     "db:deploy": "pnpm --filter @repo/api db:deploy",
+    "db:seed": "pnpm --filter @repo/api db:seed",
     "db:studio": "pnpm --filter @repo/api db:studio",
     "docker:up": "docker compose up --build"
   },

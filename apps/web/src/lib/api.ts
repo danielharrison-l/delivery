@@ -1,11 +1,11 @@
 import {
-  createUserSchema,
+  createCustomerSchema,
   healthSchema,
-  type CreateUserInput,
+  type CreateCustomerInput,
   type HealthResponse,
-  type UserResponse,
-  userSchema,
-  usersSchema
+  type CustomerResponse,
+  customerSchema,
+  customersSchema
 } from "@repo/shared";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3333/api";
@@ -31,19 +31,19 @@ export function getHealth(): Promise<HealthResponse> {
   return request("/health", healthSchema);
 }
 
-export function listUsers(): Promise<UserResponse[]> {
-  return request("/users", usersSchema);
+export function listCustomers(): Promise<CustomerResponse[]> {
+  return request("/customers", customersSchema);
 }
 
-export function createUser(input: CreateUserInput): Promise<UserResponse> {
-  const data = createUserSchema.parse(input);
+export function createCustomer(input: CreateCustomerInput): Promise<CustomerResponse> {
+  const data = createCustomerSchema.parse(input);
 
-  return request("/users", userSchema, {
+  return request("/customers", customerSchema, {
     method: "POST",
     body: JSON.stringify(data)
   });
 }
 
-export async function deleteUser(id: string): Promise<void> {
-  await request(`/users/${id}`, { parse: () => ({ id }) }, { method: "DELETE" });
+export async function deleteCustomer(id: string): Promise<void> {
+  await request(`/customers/${id}`, { parse: () => ({ id }) }, { method: "DELETE" });
 }

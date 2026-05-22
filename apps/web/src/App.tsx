@@ -1,6 +1,6 @@
-import { createUserSchema, type UserResponse } from "@repo/shared";
+import { createCustomerSchema, type CustomerResponse } from "@repo/shared";
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { createUser, deleteUser, getHealth, listUsers } from "./lib/api";
+import { createCustomer, deleteCustomer, getHealth, listCustomers } from "./lib/api";
 
 type FormState = {
   name: string;
@@ -14,31 +14,31 @@ const initialForm: FormState = {
 
 export function App() {
   const [apiStatus, setApiStatus] = useState<"checking" | "online" | "offline">("checking");
-  const [users, setUsers] = useState<UserResponse[]>([]);
+  const [customers, setCustomers] = useState<CustomerResponse[]>([]);
   const [form, setForm] = useState<FormState>(initialForm);
   const [formError, setFormError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLoadingUsers, setIsLoadingUsers] = useState(true);
+  const [isLoadingCustomers, setIsLoadingCustomers] = useState(true);
 
   const initials = useMemo(
     () =>
-      users.map((user) => ({
-        ...user,
-        initials: user.name
+      customers.map((customer) => ({
+        ...customer,
+        initials: customer.name
           .split(" ")
           .filter(Boolean)
           .slice(0, 2)
           .map((part) => part[0]?.toUpperCase())
           .join("")
       })),
-    [users]
+    [customers]
   );
 
-  async function refreshUsers() {
-    setIsLoadingUsers(true);
-    const nextUsers = await listUsers();
-    setUsers(nextUsers);
-    setIsLoadingUsers(false);
+  async function refreshCustomers() {
+    setIsLoadingCustomers(true);
+    const nextCustomers = await listCustomers();
+    setCustomers(nextCustomers);
+    setIsLoadingCustomers(false);
   }
 
   useEffect(() => {
@@ -46,14 +46,14 @@ export function App() {
       .then(() => setApiStatus("online"))
       .catch(() => setApiStatus("offline"));
 
-    void refreshUsers().catch(() => setIsLoadingUsers(false));
+    void refreshCustomers().catch(() => setIsLoadingCustomers(false));
   }, []);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setFormError(null);
 
-    const parsed = createUserSchema.safeParse(form);
+    const parsed = createCustomerSchema.safeParse(form);
     if (!parsed.success) {
       setFormError(parsed.error.issues[0]?.message ?? "Dados inválidos.");
       return;
@@ -62,19 +62,19 @@ export function App() {
     setIsSubmitting(true);
 
     try {
-      const user = await createUser(parsed.data);
-      setUsers((current) => [user, ...current]);
+      const customer = await createCustomer(parsed.data);
+      setCustomers((current) => [customer, ...current]);
       setForm(initialForm);
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : "Não foi possível criar o usuário.");
+      setFormError(error instanceof Error ? error.message : "Não foi possível criar o cliente.");
     } finally {
       setIsSubmitting(false);
     }
   }
 
   async function handleDelete(id: string) {
-    await deleteUser(id);
-    setUsers((current) => current.filter((user) => user.id !== id));
+    await deleteCustomer(id);
+    setCustomers((current) => current.filter((customer) => customer.id !== id));
   }
 
   return (
@@ -83,7 +83,7 @@ export function App() {
         <header className="flex flex-col gap-5 border-b border-[#d8ddd2] pb-6 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.14em] text-mint">Fullstack Monorepo</p>
-            <h1 className="mt-2 text-3xl font-semibold sm:text-4xl">Usuários</h1>
+            <h1 className="mt-2 text-3xl font-semibold sm:text-4xl">Clientes</h1>
           </div>
 
           <div className="flex w-fit items-center gap-2 rounded-md border border-[#c8d6cf] bg-white px-3 py-2 text-sm shadow-sm">
@@ -105,7 +105,7 @@ export function App() {
         <section className="grid gap-6 lg:grid-cols-[360px_1fr]">
           <form className="h-fit rounded-md border border-[#d8ddd2] bg-white p-5 shadow-sm" onSubmit={handleSubmit}>
             <div className="mb-5">
-              <h2 className="text-lg font-semibold">Novo usuário</h2>
+              <h2 className="text-lg font-semibold">Novo cliente</h2>
             </div>
 
             <label className="grid gap-2 text-sm font-medium text-steel">
@@ -140,7 +140,7 @@ export function App() {
               disabled={isSubmitting}
               type="submit"
             >
-              {isSubmitting ? "Salvando..." : "Salvar usuário"}
+              {isSubmitting ? "Salvando..." : "Salvar cliente"}
             </button>
           </form>
 
@@ -148,28 +148,28 @@ export function App() {
             <div className="flex items-center justify-between border-b border-[#e2e6df] px-5 py-4">
               <h2 className="text-lg font-semibold">Lista</h2>
               <span className="rounded-md bg-[#edf4f1] px-2.5 py-1 text-sm font-medium text-mint">
-                {users.length} registros
+                {customers.length} registros
               </span>
             </div>
 
             <div className="divide-y divide-[#edf0ea]">
-              {isLoadingUsers ? (
+              {isLoadingCustomers ? (
                 <p className="px-5 py-6 text-sm text-steel">Carregando...</p>
               ) : initials.length === 0 ? (
-                <p className="px-5 py-6 text-sm text-steel">Nenhum usuário cadastrado.</p>
+                <p className="px-5 py-6 text-sm text-steel">Nenhum cliente cadastrado.</p>
               ) : (
-                initials.map((user) => (
-                  <article className="flex items-center gap-4 px-5 py-4" key={user.id}>
+                initials.map((customer) => (
+                  <article className="flex items-center gap-4 px-5 py-4" key={customer.id}>
                     <div className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-[#e7eee9] text-sm font-bold text-mint">
-                      {user.initials || "U"}
+                      {customer.initials || "C"}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h3 className="truncate font-semibold">{user.name}</h3>
-                      <p className="truncate text-sm text-steel">{user.email}</p>
+                      <h3 className="truncate font-semibold">{customer.name}</h3>
+                      <p className="truncate text-sm text-steel">{customer.email}</p>
                     </div>
                     <button
                       className="h-9 rounded-md border border-[#d5dcd4] px-3 text-sm font-medium text-steel transition hover:border-coral hover:text-coral"
-                      onClick={() => void handleDelete(user.id)}
+                      onClick={() => void handleDelete(customer.id)}
                       type="button"
                     >
                       Remover
