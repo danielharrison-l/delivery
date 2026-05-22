@@ -1,0 +1,22 @@
+{
+  "name": "fullstack-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.11.1",
+  "scripts": {
+    "dev": "pnpm --filter @repo/shared build && turbo dev --parallel",
+    "build": "turbo build",
+    "typecheck": "turbo typecheck",
+    "format": "prettier --write \"**/*.{ts,tsx,js,json,md,css}\"",
+    "db:generate": "pnpm --filter @repo/api db:generate",
+    "db:migrate": "pnpm --filter @repo/api db:migrate",
+    "db:deploy": "pnpm --filter @repo/api db:deploy",
+    "db:studio": "pnpm --filter @repo/api db:studio",
+    "docker:up": "docker compose up --build"
+  },
+  "devDependencies": {
+    "prettier": "^3.8.3",
+    "turbo": "^2.9.14",
+    "typescript": "^5.9.3"
+  }
+}
