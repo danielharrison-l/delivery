@@ -5,7 +5,7 @@ import {
   type HealthResponse,
   type CustomerResponse,
   customerSchema,
-  customersSchema
+  paginatedCustomersSchema
 } from "@repo/shared";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3333/api";
@@ -32,7 +32,7 @@ export function getHealth(): Promise<HealthResponse> {
 }
 
 export function listCustomers(): Promise<CustomerResponse[]> {
-  return request("/customers", customersSchema);
+  return request("/customers", paginatedCustomersSchema).then((response) => response.data);
 }
 
 export function createCustomer(input: CreateCustomerInput): Promise<CustomerResponse> {

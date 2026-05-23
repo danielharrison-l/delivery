@@ -1,77 +1,104 @@
-import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
-import type { CreateCustomerInput, UpdateCustomerInput } from "@repo/shared";
-import { Prisma } from "@prisma/client";
-import { PrismaService } from "../prisma/prisma.service";
+import { ConflictException, Inject, Injectable, Logger, NotFoundException } from "@nestjs/common";
+import { handlePrismaError } from "../common/errors/prisma-error.utils";
+import { createPaginatedResult } from "../common/pagination/pagination.utils";
+import { customersErrors } from "./customers.errors";
+import { customersMapper } from "./customers.mapper";
+import type { CustomersRepositoryContract } from "./customers.repository.contract";
+import { CUSTOMERS_REPOSITORY } from "./customers.tokens";
+import type {
+  CustomerCreateData,
+  CustomerDto,
+  CustomerFindManyQuery,
+  CustomerRecord,
+  CustomersPageDto,
+  CustomerUpdateData
+} from "./customers.types";
 
 @Injectable()
 export class CustomersService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger(CustomersService.name);
 
-  async findMany() {
-    return this.prisma.customer.findMany({
-      orderBy: { createdAt: "desc" },
-      omit: { passwordHash: true }
-    });
-  }
+  constructor(
+    @Inject(CUSTOMERS_REPOSITORY)
+    private readonly customersRepository: CustomersRepositoryContract
+  ) {}
 
-  async findOne(id: string) {
-    const customer = await this.prisma.customer.findUnique({
-      where: { id },
-      omit: { passwordHash: true }
-    });
-
-    if (!customer) {
-      throw new NotFoundException("Customer not found");
-    }
-
-    return customer;
-  }
-
-  async create(data: CreateCustomerInput) {
+  async findMany(query: CustomerFindManyQuery): Promise<CustomersPageDto> {
     try {
-      return await this.prisma.customer.create({
-        data: this.cleanInput(data),
-        omit: { passwordHash: true }
-      });
+      const customers = await this.customersRepository.findManyPaginated(query);
+      return createPaginatedResult(
+        customers.data.map((customer) => customersMapper.toDto(customer)),
+        query,
+        customers.total
+      );
     } catch (error) {
-      this.handleKnownError(error);
+      this.handleDatabaseError(error);
     }
   }
 
-  async update(id: string, data: UpdateCustomerInput) {
-    await this.findOne(id);
+  async findOne(id: string): Promise<CustomerDto> {
+    const customer = await this.findRecordOrFail(id);
+    return customersMapper.toDto(customer);
+  }
+
+  async create(data: CustomerCreateData): Promise<CustomerDto> {
+    try {
+      const customer = await this.customersRepository.create(customersMapper.toCreateData(data));
+
+      return customersMapper.toDto(customer);
+    } catch (error) {
+      this.handleDatabaseError(error);
+    }
+  }
+
+  async update(id: string, data: CustomerUpdateData): Promise<CustomerDto> {
+    await this.findRecordOrFail(id);
 
     try {
-      return await this.prisma.customer.update({
-        where: { id },
-        data: this.cleanInput(data),
-        omit: { passwordHash: true }
-      });
+      const customer = await this.customersRepository.update(id, customersMapper.toUpdateData(data));
+
+      return customersMapper.toDto(customer);
     } catch (error) {
-      this.handleKnownError(error);
+      this.handleDatabaseError(error);
     }
   }
 
-  async remove(id: string) {
-    await this.findOne(id);
-    await this.prisma.customer.delete({ where: { id } });
+  async remove(id: string): Promise<void> {
+    await this.findRecordOrFail(id);
 
-    return { id };
-  }
-
-  private cleanInput<T extends CreateCustomerInput | UpdateCustomerInput>(data: T) {
-    return {
-      ...data,
-      phone: data.phone || undefined,
-      address: data.address || undefined
-    };
-  }
-
-  private handleKnownError(error: unknown): never {
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
-      throw new ConflictException("Email already exists");
+    try {
+      await this.customersRepository.delete(id);
+    } catch (error) {
+      this.handleDatabaseError(error);
     }
+  }
 
-    throw error;
+  private async findRecordOrFail(id: string): Promise<CustomerRecord> {
+    try {
+      const customer = await this.customersRepository.findById(id);
+
+      if (!customer) {
+        throw new NotFoundException(customersErrors.notFound);
+      }
+
+      return customer;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+
+      this.handleDatabaseError(error);
+    }
+  }
+
+  private handleDatabaseError(error: unknown): never {
+    return handlePrismaError(error, {
+      context: CustomersService.name,
+      logger: this.logger,
+      knownErrors: {
+        P2002: () => new ConflictException(customersErrors.emailAlreadyExists),
+        P2025: () => new NotFoundException(customersErrors.notFound)
+      }
+    });
   }
 }

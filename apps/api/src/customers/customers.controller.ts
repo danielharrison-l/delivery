@@ -1,5 +1,7 @@
-import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Patch, Post } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Patch, Post, Query } from "@nestjs/common";
 import {
+  customerListQuerySchema,
+  type CustomerListQuery,
   createCustomerSchema,
   type CreateCustomerInput,
   updateCustomerSchema,
@@ -13,8 +15,8 @@ export class CustomersController {
   constructor(private readonly customersService: CustomersService) {}
 
   @Get()
-  findMany() {
-    return this.customersService.findMany();
+  findMany(@Query(new ZodValidationPipe(customerListQuerySchema)) query: CustomerListQuery) {
+    return this.customersService.findMany(query);
   }
 
   @Get(":id")
@@ -36,6 +38,7 @@ export class CustomersController {
   }
 
   @Delete(":id")
+  @HttpCode(HttpStatus.NO_CONTENT)
   remove(@Param("id", new ParseUUIDPipe()) id: string) {
     return this.customersService.remove(id);
   }

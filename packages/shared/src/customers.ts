@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { paginationMetaSchema, paginationQuerySchema } from "./pagination";
 
 export const createCustomerSchema = z.object({
   name: z.string().trim().min(2).max(100),
@@ -24,6 +25,17 @@ export const customerSchema = z.object({
 
 export const customersSchema = z.array(customerSchema);
 
+export const customerListQuerySchema = paginationQuerySchema.extend({
+  search: z.string().trim().min(1).max(100).optional()
+});
+
+export const paginatedCustomersSchema = z.object({
+  data: customersSchema,
+  meta: paginationMetaSchema
+});
+
 export type CreateCustomerInput = z.infer<typeof createCustomerSchema>;
 export type UpdateCustomerInput = z.infer<typeof updateCustomerSchema>;
 export type CustomerResponse = z.infer<typeof customerSchema>;
+export type CustomerListQuery = z.infer<typeof customerListQuerySchema>;
+export type PaginatedCustomersResponse = z.infer<typeof paginatedCustomersSchema>;
