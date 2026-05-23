@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { customerSchema } from "./customers";
 import { menuItemSchema } from "./menu";
+import { paginationMetaSchema, paginationQuerySchema } from "./pagination";
 
 export const deliveryOrderStatusSchema = z.enum([
   "PREPARING",
@@ -18,6 +19,14 @@ export const createDeliveryOrderSchema = z.object({
       quantity: z.coerce.number().int().min(1).max(20)
     })
   ).min(1)
+});
+
+export const createAuthenticatedDeliveryOrderSchema = createDeliveryOrderSchema.omit({
+  customerId: true
+});
+
+export const updateDeliveryOrderStatusSchema = z.object({
+  status: deliveryOrderStatusSchema
 });
 
 export const deliveryOrderItemSchema = z.object({
@@ -44,5 +53,19 @@ export const deliveryOrderSchema = z.object({
 
 export const deliveryOrdersSchema = z.array(deliveryOrderSchema);
 
+export const deliveryOrderListQuerySchema = paginationQuerySchema.extend({
+  status: deliveryOrderStatusSchema.optional(),
+  customerId: z.string().uuid().optional()
+});
+
+export const paginatedDeliveryOrdersSchema = z.object({
+  data: deliveryOrdersSchema,
+  meta: paginationMetaSchema
+});
+
 export type CreateDeliveryOrderInput = z.infer<typeof createDeliveryOrderSchema>;
+export type CreateAuthenticatedDeliveryOrderInput = z.infer<typeof createAuthenticatedDeliveryOrderSchema>;
+export type UpdateDeliveryOrderStatusInput = z.infer<typeof updateDeliveryOrderStatusSchema>;
 export type DeliveryOrderResponse = z.infer<typeof deliveryOrderSchema>;
+export type DeliveryOrderListQuery = z.infer<typeof deliveryOrderListQuerySchema>;
+export type PaginatedDeliveryOrdersResponse = z.infer<typeof paginatedDeliveryOrdersSchema>;
