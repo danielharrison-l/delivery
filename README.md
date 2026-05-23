@@ -1,6 +1,6 @@
 # Fullstack Monorepo
 
-Monorepo fullstack com Node.js, TypeScript, NestJS, Prisma ORM, React, Vite, Tailwind CSS, Zod, pnpm workspaces e Turborepo.
+Monorepo fullstack para um site de restaurante com Node.js, TypeScript, NestJS, Prisma ORM, PostgreSQL, React, Vite, Tailwind CSS, Zod, pnpm workspaces e Turborepo.
 
 ## Estrutura
 
@@ -8,8 +8,10 @@ Monorepo fullstack com Node.js, TypeScript, NestJS, Prisma ORM, React, Vite, Tai
 apps/
   api/       NestJS + Prisma + Zod
   web/       React + Vite + Tailwind + Zod
+docs/
+  api.md    Contrato humano da API
 packages/
-  shared/    Schemas e tipos compartilhados
+  shared/   Schemas e tipos compartilhados
 ```
 
 ## Requisitos
@@ -18,18 +20,22 @@ packages/
 - pnpm 10+
 - Docker, se quiser usar PostgreSQL ou rodar tudo em containers
 
-## Instalação
+## Instalacao
 
 ```bash
 pnpm install
 ```
 
-## Variáveis de ambiente
+## Variaveis de ambiente
 
 ```bash
 cp apps/api/.env.example apps/api/.env
 cp apps/web/.env.example apps/web/.env
 ```
+
+Na API, configure tambem `AUTH_ACCESS_TOKEN_SECRET`, `AUTH_ACCESS_TOKEN_EXPIRES_IN_SECONDS` e `AUTH_REFRESH_TOKEN_EXPIRES_IN_SECONDS`.
+
+O access token e retornado no JSON de login/cadastro/refresh. O refresh token fica em cookie `HttpOnly` e exige `credentials: "include"` no frontend.
 
 ## Desenvolvimento local
 
@@ -46,15 +52,30 @@ pnpm db:generate
 pnpm db:migrate
 ```
 
-Rode as aplicações:
+Opcionalmente, rode o seed:
+
+```bash
+pnpm --filter @repo/api db:seed
+```
+
+Rode as aplicacoes:
 
 ```bash
 pnpm dev
 ```
 
-- Web: http://localhost:5173
-- API: http://localhost:3333/api
-- Health: http://localhost:3333/api/health
+- Web: `http://localhost:5173`
+- API: `http://localhost:3333/api`
+- Health: `http://localhost:3333/api/health`
+
+## Documentacao da API
+
+Com a API rodando:
+
+- Scalar: `http://localhost:3333/api/docs`
+- Swagger UI: `http://localhost:3333/api/swagger`
+- OpenAPI JSON: `http://localhost:3333/api/openapi.json`
+- Contrato Markdown: `docs/api.md`
 
 ## Docker
 
@@ -64,12 +85,21 @@ Para rodar tudo via Docker:
 pnpm docker:up
 ```
 
+Ou diretamente:
+
+```bash
+docker compose up --build
+```
+
 ## Scripts
 
 ```bash
 pnpm dev
 pnpm build
 pnpm typecheck
+pnpm db:generate
 pnpm db:migrate
 pnpm db:studio
+pnpm docker:up
+pnpm docker:down
 ```
