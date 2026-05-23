@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Patch, Post, Query } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Patch, Post, Query, UseGuards } from "@nestjs/common";
 import {
   customerListQuerySchema,
   type CustomerListQuery,
@@ -8,9 +8,11 @@ import {
   type UpdateCustomerInput
 } from "@repo/shared";
 import { ZodValidationPipe } from "../common/pipes/zod-validation.pipe";
+import { AuthGuard } from "../auth/auth.guard";
 import { CustomersService } from "./customers.service";
 
 @Controller("customers")
+@UseGuards(AuthGuard)
 export class CustomersController {
   constructor(private readonly customersService: CustomersService) {}
 

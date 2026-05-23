@@ -25,6 +25,10 @@ services:
       DATABASE_URL: postgresql://app:app@db:5432/app?schema=public
       PORT: 3333
       CORS_ORIGIN: http://localhost:5173
+      AUTH_ACCESS_TOKEN_SECRET: change-me-access-token-secret
+      AUTH_ACCESS_TOKEN_EXPIRES_IN_SECONDS: 900
+      AUTH_REFRESH_TOKEN_EXPIRES_IN_SECONDS: 604800
+      AUTH_REFRESH_TOKEN_COOKIE_SECURE: false
     ports:
       - "3333:3333"
     depends_on:
