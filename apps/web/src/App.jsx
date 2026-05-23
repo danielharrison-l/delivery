@@ -1,22 +1,17 @@
-import { createCustomerSchema, type CustomerResponse } from "@repo/shared";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { createCustomerSchema } from "@repo/shared";
+import { useEffect, useMemo, useState } from "react";
 import { createCustomer, deleteCustomer, getHealth, listCustomers } from "./lib/api";
 
-type FormState = {
-  name: string;
-  email: string;
-};
-
-const initialForm: FormState = {
+const initialForm = {
   name: "",
   email: ""
 };
 
 export function App() {
-  const [apiStatus, setApiStatus] = useState<"checking" | "online" | "offline">("checking");
-  const [customers, setCustomers] = useState<CustomerResponse[]>([]);
-  const [form, setForm] = useState<FormState>(initialForm);
-  const [formError, setFormError] = useState<string | null>(null);
+  const [apiStatus, setApiStatus] = useState("checking");
+  const [customers, setCustomers] = useState([]);
+  const [form, setForm] = useState(initialForm);
+  const [formError, setFormError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingCustomers, setIsLoadingCustomers] = useState(true);
 
@@ -49,7 +44,7 @@ export function App() {
     void refreshCustomers().catch(() => setIsLoadingCustomers(false));
   }, []);
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event) {
     event.preventDefault();
     setFormError(null);
 
@@ -72,7 +67,7 @@ export function App() {
     }
   }
 
-  async function handleDelete(id: string) {
+  async function handleDelete(id) {
     await deleteCustomer(id);
     setCustomers((current) => current.filter((customer) => customer.id !== id));
   }

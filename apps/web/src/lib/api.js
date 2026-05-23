@@ -4,24 +4,18 @@ import {
   healthSchema,
   loginSchema,
   registerSchema,
-  type AuthSessionResponse,
-  type CreateCustomerInput,
-  type HealthResponse,
-  type CustomerResponse,
-  type LoginInput,
-  type RegisterInput,
   customerSchema,
   paginatedCustomersSchema
 } from "@repo/shared";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3333/api";
-let accessToken: string | null = null;
+let accessToken = null;
 
-export function setAccessToken(token: string | null): void {
+export function setAccessToken(token) {
   accessToken = token;
 }
 
-async function request<T>(path: string, schema: { parse: (value: unknown) => T }, init?: RequestInit) {
+async function request(path, schema, init) {
   const response = await fetch(`${API_URL}${path}`, {
     credentials: "include",
     headers: {
@@ -40,7 +34,7 @@ async function request<T>(path: string, schema: { parse: (value: unknown) => T }
   return schema.parse(await response.json());
 }
 
-export async function register(input: RegisterInput): Promise<AuthSessionResponse> {
+export async function register(input) {
   const data = registerSchema.parse(input);
   const session = await request("/auth/register", authSessionSchema, {
     method: "POST",
@@ -52,7 +46,7 @@ export async function register(input: RegisterInput): Promise<AuthSessionRespons
   return session;
 }
 
-export async function login(input: LoginInput): Promise<AuthSessionResponse> {
+export async function login(input) {
   const data = loginSchema.parse(input);
   const session = await request("/auth/login", authSessionSchema, {
     method: "POST",
@@ -64,7 +58,7 @@ export async function login(input: LoginInput): Promise<AuthSessionResponse> {
   return session;
 }
 
-export async function refreshSession(): Promise<AuthSessionResponse> {
+export async function refreshSession() {
   const session = await request("/auth/refresh", authSessionSchema, {
     method: "POST"
   });
@@ -74,7 +68,7 @@ export async function refreshSession(): Promise<AuthSessionResponse> {
   return session;
 }
 
-export async function logout(): Promise<void> {
+export async function logout() {
   const response = await fetch(`${API_URL}/auth/logout`, {
     method: "POST",
     credentials: "include",
@@ -91,15 +85,15 @@ export async function logout(): Promise<void> {
   }
 }
 
-export function getHealth(): Promise<HealthResponse> {
+export function getHealth() {
   return request("/health", healthSchema);
 }
 
-export function listCustomers(): Promise<CustomerResponse[]> {
+export function listCustomers() {
   return request("/customers", paginatedCustomersSchema).then((response) => response.data);
 }
 
-export function createCustomer(input: CreateCustomerInput): Promise<CustomerResponse> {
+export function createCustomer(input) {
   const data = createCustomerSchema.parse(input);
 
   return request("/customers", customerSchema, {
@@ -108,7 +102,7 @@ export function createCustomer(input: CreateCustomerInput): Promise<CustomerResp
   });
 }
 
-export async function deleteCustomer(id: string): Promise<void> {
+export async function deleteCustomer(id) {
   const response = await fetch(`${API_URL}/customers/${id}`, {
     method: "DELETE",
     credentials: "include",

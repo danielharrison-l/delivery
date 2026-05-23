@@ -1,13 +1,13 @@
 # Fullstack Monorepo
 
-Monorepo fullstack para um site de restaurante com Node.js, TypeScript, NestJS, Prisma ORM, PostgreSQL, React, Vite, Tailwind CSS, Zod, pnpm workspaces e Turborepo.
+Monorepo fullstack para um site de restaurante com Node.js, TypeScript no backend, NestJS, Prisma ORM, PostgreSQL, React com JavaScript, Vite, Tailwind CSS, Zod, pnpm workspaces e Turborepo.
 
 ## Estrutura
 
 ```txt
 apps/
   api/       NestJS + Prisma + Zod
-  web/       React + Vite + Tailwind + Zod
+  web/       React + Vite + Tailwind + Zod em JavaScript
 docs/
   api.md    Contrato humano da API
 packages/
