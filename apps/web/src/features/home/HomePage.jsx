@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { CalendarClock, ChefHat, ShoppingBag, UserRound, UsersRound, Utensils } from "lucide-react";
 import { Link } from "react-router-dom";
+import { ErrorState } from "../../components/layout/ErrorState";
 import { PageHeader } from "../../components/layout/PageHeader";
 import { Button } from "../../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
@@ -40,14 +41,23 @@ export function HomePage() {
   const reservations = reservationsQuery.data?.data ?? [];
   const revenue = orders.reduce((total, order) => total + Number(order.totalAmount), 0);
   const quickActions = isAdmin ? adminQuickActions : customerQuickActions;
+  const hasPanelError = menuQuery.isError || reservationsQuery.isError || ordersQuery.isError;
+
+  function retryPanel() {
+    menuQuery.refetch();
+    reservationsQuery.refetch();
+    ordersQuery.refetch();
+  }
 
   return (
     <>
       <PageHeader
         description={isAdmin ? "Resumo rápido da operação, pedidos e reservas." : "Acesse o cardápio, faça pedidos e acompanhe suas reservas."}
-        eyebrow="Dashboard"
+        eyebrow="Painel"
         title="Principal"
       />
+
+      {hasPanelError ? <ErrorState onRetry={retryPanel} /> : null}
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Card>
@@ -55,7 +65,7 @@ export function HomePage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Itens disponíveis</CardTitle>
           </CardHeader>
           <CardContent className="flex items-end justify-between">
-            <span className="text-3xl font-semibold">{menuItems.length}</span>
+            <span className="text-3xl font-semibold">{menuQuery.isError ? "—" : menuItems.length}</span>
             <Utensils className="h-5 w-5 text-accent" />
           </CardContent>
         </Card>
@@ -64,7 +74,7 @@ export function HomePage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">{isAdmin ? "Reservas recentes" : "Minhas reservas"}</CardTitle>
           </CardHeader>
           <CardContent className="flex items-end justify-between">
-            <span className="text-3xl font-semibold">{reservations.length}</span>
+            <span className="text-3xl font-semibold">{reservationsQuery.isError ? "—" : reservations.length}</span>
             <CalendarClock className="h-5 w-5 text-accent" />
           </CardContent>
         </Card>
@@ -73,16 +83,16 @@ export function HomePage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">{isAdmin ? "Pedidos recentes" : "Meus pedidos"}</CardTitle>
           </CardHeader>
           <CardContent className="flex items-end justify-between">
-            <span className="text-3xl font-semibold">{orders.length}</span>
+            <span className="text-3xl font-semibold">{ordersQuery.isError ? "—" : orders.length}</span>
             <ShoppingBag className="h-5 w-5 text-accent" />
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total exibido</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total recente</CardTitle>
           </CardHeader>
           <CardContent className="flex items-end justify-between">
-            <span className="text-3xl font-semibold">{formatCurrency(revenue)}</span>
+            <span className="text-3xl font-semibold">{ordersQuery.isError ? "—" : formatCurrency(revenue)}</span>
             <ChefHat className="h-5 w-5 text-accent" />
           </CardContent>
         </Card>

@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { Button } from "../../components/ui/button";
 import { FormField } from "../../components/ui/form-field";
 import { Input } from "../../components/ui/input";
-import { register } from "../../lib/api";
+import { getApiErrorMessage, register } from "../../lib/api";
 import { AuthShell } from "./AuthShell";
 import { useAuthStore } from "./store";
 
@@ -32,7 +32,7 @@ export function RegisterPage() {
       navigate("/app", { replace: true });
     },
     onError: (error) => {
-      toast.error(error.message);
+      toast.error(getApiErrorMessage(error));
     }
   });
 
@@ -62,7 +62,7 @@ export function RegisterPage() {
           <Input autoComplete="name" id="name" placeholder="Seu nome" {...form.register("name")} />
         </FormField>
         <FormField error={form.formState.errors.email?.message} id="email" label="E-mail">
-          <Input autoComplete="email" id="email" placeholder="voce@email.com" type="email" {...form.register("email")} />
+          <Input autoComplete="email" id="email" placeholder="seu@email.com" type="email" {...form.register("email")} />
         </FormField>
         <FormField error={form.formState.errors.password?.message} id="password" label="Senha">
           <Input autoComplete="new-password" id="password" placeholder="Mínimo de 8 caracteres" type="password" {...form.register("password")} />

@@ -3,28 +3,74 @@
 @tailwind utilities;
 
 :root {
-  --background: 42 38% 96%;
-  --foreground: 222 35% 12%;
-  --card: 0 0% 100%;
-  --card-foreground: 222 35% 12%;
-  --primary: 25 68% 45%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 150 18% 91%;
-  --secondary-foreground: 222 30% 20%;
-  --muted: 42 24% 91%;
-  --muted-foreground: 215 15% 42%;
-  --accent: 151 28% 38%;
-  --accent-foreground: 0 0% 100%;
-  --destructive: 8 70% 48%;
-  --destructive-foreground: 0 0% 100%;
-  --border: 40 19% 84%;
-  --input: 40 19% 84%;
-  --ring: 25 68% 45%;
+  --background: 38 38% 96%;
+  --foreground: 222 38% 12%;
+  --card: 42 42% 99%;
+  --card-foreground: 222 38% 12%;
+  --primary: 25 74% 43%;
+  --primary-foreground: 34 60% 96%;
+  --secondary: 150 17% 88%;
+  --secondary-foreground: 222 31% 18%;
+  --muted: 38 28% 89%;
+  --muted-foreground: 218 14% 38%;
+  --accent: 153 31% 34%;
+  --accent-foreground: 38 42% 96%;
+  --destructive: 6 72% 46%;
+  --destructive-foreground: 38 42% 96%;
+  --border: 36 22% 82%;
+  --input: 36 22% 82%;
+  --ring: 25 74% 43%;
+  --landing-background: 38 38% 96%;
+  --landing-surface: 39 44% 98%;
+  --landing-surface-low: 37 31% 91%;
+  --landing-surface-strong: 222 34% 13%;
+  --landing-foreground: 222 38% 12%;
+  --landing-muted: 217 14% 38%;
+  --landing-primary: 25 74% 43%;
+  --landing-primary-foreground: 34 60% 96%;
+  --landing-border: 36 22% 82%;
+  --landing-overlay-start: 38 38% 96%;
+  --landing-overlay-middle: 38 38% 96%;
+  --landing-overlay-end: 38 38% 96%;
   --radius: 0.5rem;
+  color-scheme: light;
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   color: hsl(var(--foreground));
   background: hsl(var(--background));
+}
+
+.dark {
+  --background: 215 50% 8%;
+  --foreground: 218 46% 91%;
+  --card: 216 39% 14%;
+  --card-foreground: 218 46% 91%;
+  --primary: 25 77% 47%;
+  --primary-foreground: 24 100% 90%;
+  --secondary: 216 29% 20%;
+  --secondary-foreground: 218 42% 88%;
+  --muted: 216 31% 18%;
+  --muted-foreground: 220 13% 77%;
+  --accent: 25 92% 77%;
+  --accent-foreground: 24 72% 17%;
+  --destructive: 5 72% 55%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 218 20% 27%;
+  --input: 218 20% 27%;
+  --ring: 25 92% 77%;
+  --landing-background: 215 50% 8%;
+  --landing-surface: 216 39% 14%;
+  --landing-surface-low: 216 35% 12%;
+  --landing-surface-strong: 216 29% 20%;
+  --landing-foreground: 218 46% 91%;
+  --landing-muted: 220 13% 77%;
+  --landing-primary: 25 77% 47%;
+  --landing-primary-foreground: 24 100% 90%;
+  --landing-border: 218 20% 27%;
+  --landing-overlay-start: 215 50% 8%;
+  --landing-overlay-middle: 215 50% 8%;
+  --landing-overlay-end: 215 50% 8%;
+  color-scheme: dark;
 }
 
 * {
@@ -35,6 +81,7 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  background: hsl(var(--background));
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
 }

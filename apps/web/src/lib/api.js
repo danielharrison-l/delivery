@@ -16,7 +16,7 @@ import { useAuthStore } from "../features/auth/store";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3333/api";
 
-const GENERIC_ERROR_MESSAGE = "Não foi possível completar a solicitação agora. Tente novamente em instantes.";
+export const GENERIC_ERROR_MESSAGE = "Não foi possível completar a solicitação agora. Tente novamente em instantes.";
 const CONNECTION_ERROR_MESSAGE = "Não foi possível conectar ao servidor. Tente novamente em instantes.";
 
 const errorMessagesByCode = {
@@ -63,6 +63,14 @@ function getAccessToken() {
   return useAuthStore.getState().accessToken;
 }
 
+export function getApiErrorMessage(error) {
+  return error instanceof Error && error.message ? error.message : GENERIC_ERROR_MESSAGE;
+}
+
+function translateApiMessage(message) {
+  return legacyMessages[message] ?? message;
+}
+
 async function parseError(response) {
   if (response.status >= 500) {
     return GENERIC_ERROR_MESSAGE;
@@ -75,7 +83,7 @@ async function parseError(response) {
     const firstError = Object.values(fieldErrors).flat().find(Boolean);
 
     if (firstError) {
-      return translateError(String(firstError));
+      return translateApiMessage(String(firstError));
     }
   }
 
@@ -123,8 +131,21 @@ async function request(path, { schema, method = "GET", body, auth = false, retry
     return undefined;
   }
 
-  const data = await response.json();
-  return schema ? schema.parse(data) : data;
+  const data = await response.json().catch(() => {
+    throw new Error(GENERIC_ERROR_MESSAGE);
+  });
+
+  if (!schema) {
+    return data;
+  }
+
+  const parsed = schema.safeParse(data);
+
+  if (!parsed.success) {
+    throw new Error(GENERIC_ERROR_MESSAGE);
+  }
+
+  return parsed.data;
 }
 
 export function getHealth() {

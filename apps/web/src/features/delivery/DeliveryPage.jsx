@@ -4,6 +4,7 @@ import { ImageOff, Minus, Plus, ShoppingCart, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { EmptyState } from "../../components/layout/EmptyState";
+import { ErrorState } from "../../components/layout/ErrorState";
 import { PageHeader } from "../../components/layout/PageHeader";
 import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
@@ -14,7 +15,7 @@ import { PaginationControls } from "../../components/ui/pagination-controls";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 import { Skeleton } from "../../components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table";
-import { createDeliveryOrder, deleteDeliveryOrder, listDeliveryOrders, listMenuItems, updateDeliveryOrderStatus } from "../../lib/api";
+import { createDeliveryOrder, deleteDeliveryOrder, getApiErrorMessage, listDeliveryOrders, listMenuItems, updateDeliveryOrderStatus } from "../../lib/api";
 import { deliveryStatusOptions, paginationDefaults, statusLabels } from "../../lib/constants";
 import { formatCurrency, formatDateTime } from "../../lib/formatters";
 import { useAuthStore } from "../auth/store";
@@ -70,7 +71,7 @@ export function DeliveryPage() {
       setAddress(customer?.address ?? "");
       toast.success("Pedido criado");
     },
-    onError: (error) => toast.error(error.message)
+    onError: (error) => toast.error(getApiErrorMessage(error))
   });
 
   const statusMutation = useMutation({
@@ -79,7 +80,7 @@ export function DeliveryPage() {
       await queryClient.invalidateQueries({ queryKey: ["delivery-orders"] });
       toast.success("Status atualizado");
     },
-    onError: (error) => toast.error(error.message)
+    onError: (error) => toast.error(getApiErrorMessage(error))
   });
 
   const deleteMutation = useMutation({
@@ -88,7 +89,7 @@ export function DeliveryPage() {
       await queryClient.invalidateQueries({ queryKey: ["delivery-orders"] });
       toast.success("Pedido removido");
     },
-    onError: (error) => toast.error(error.message)
+    onError: (error) => toast.error(getApiErrorMessage(error))
   });
 
   function handleAddItem(item) {
@@ -107,7 +108,7 @@ export function DeliveryPage() {
     });
 
     if (!parsed.success) {
-      toast.error("Confira o endereço e os itens do pedido.");
+      toast.error(items.length === 0 ? "Adicione pelo menos um item ao carrinho." : "Informe o endereço de entrega.");
       return;
     }
 
@@ -129,7 +130,7 @@ export function DeliveryPage() {
       <PageHeader
         description={isAdmin ? "Acompanhe todos os pedidos e atualize o status das entregas." : "Monte pedidos a partir do cardápio disponível e acompanhe suas entregas."}
         eyebrow="Delivery"
-        title={isAdmin ? "Delivery" : "Meu delivery"}
+        title={isAdmin ? "Delivery" : "Meus pedidos"}
       />
 
       <section className="grid gap-5 xl:grid-cols-[1fr_380px]">
@@ -144,6 +145,8 @@ export function DeliveryPage() {
                   <Skeleton className="h-44 w-full" key={index} />
                 ))}
               </div>
+            ) : menuQuery.isError ? (
+              <ErrorState onRetry={() => menuQuery.refetch()} />
             ) : menuItems.length === 0 ? (
               <EmptyState description="Nenhum item disponível para delivery no momento." title="Sem itens disponíveis" />
             ) : (
@@ -262,6 +265,10 @@ export function DeliveryPage() {
               {Array.from({ length: 4 }).map((_, index) => (
                 <Skeleton className="h-14 w-full" key={index} />
               ))}
+            </div>
+          ) : ordersQuery.isError ? (
+            <div className="p-4">
+              <ErrorState onRetry={() => ordersQuery.refetch()} />
             </div>
           ) : orders.length === 0 ? (
             <div className="p-4">

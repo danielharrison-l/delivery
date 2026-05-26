@@ -10,7 +10,7 @@ import { Button } from "../../components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
 import { FormField } from "../../components/ui/form-field";
 import { Input } from "../../components/ui/input";
-import { updateProfile } from "../../lib/api";
+import { getApiErrorMessage, updateProfile } from "../../lib/api";
 import { useAuthStore } from "../auth/store";
 
 function toProfileValues(customer) {
@@ -39,7 +39,7 @@ export function ProfilePage() {
       toast.success("Perfil atualizado");
     },
     onError: (error) => {
-      toast.error(error.message);
+      toast.error(getApiErrorMessage(error));
     }
   });
 
@@ -68,7 +68,7 @@ export function ProfilePage() {
               <Input autoComplete="name" id="profile-name" placeholder="Seu nome" {...form.register("name")} />
             </FormField>
             <FormField error={form.formState.errors.email?.message} id="profile-email" label="E-mail">
-              <Input autoComplete="email" id="profile-email" placeholder="voce@email.com" type="email" {...form.register("email")} />
+              <Input autoComplete="email" id="profile-email" placeholder="seu@email.com" type="email" {...form.register("email")} />
             </FormField>
             <FormField error={form.formState.errors.phone?.message} id="profile-phone" label="Telefone">
               <Input autoComplete="tel" id="profile-phone" placeholder="11999999999" {...form.register("phone")} />

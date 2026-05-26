@@ -1,6 +1,7 @@
 import { lazy, Suspense } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { AdminRoute } from "../components/layout/AdminRoute";
+import { AppErrorBoundary } from "../components/layout/AppErrorBoundary";
 import { AppShell } from "../components/layout/AppShell";
 import { ProtectedRoute } from "../components/layout/ProtectedRoute";
 import { Skeleton } from "../components/ui/skeleton";
@@ -29,25 +30,27 @@ function RouteFallback() {
 
 export function AppRoutes() {
   return (
-    <Suspense fallback={<RouteFallback />}>
-      <Routes>
-        <Route element={<LandingPage />} path="/" />
-        <Route element={<LoginPage />} path="/login" />
-        <Route element={<RegisterPage />} path="/cadastro" />
-        <Route element={<ProtectedRoute />}>
-          <Route element={<AppShell />}>
-            <Route element={<HomePage />} path="app" />
-            <Route element={<MenuPage />} path="cardapio" />
-            <Route element={<DeliveryPage />} path="delivery" />
-            <Route element={<ReservationsPage />} path="reservas" />
-            <Route element={<ProfilePage />} path="perfil" />
-            <Route element={<AdminRoute />}>
-              <Route element={<CustomersPage />} path="clientes" />
+    <AppErrorBoundary>
+      <Suspense fallback={<RouteFallback />}>
+        <Routes>
+          <Route element={<LandingPage />} path="/" />
+          <Route element={<LoginPage />} path="/login" />
+          <Route element={<RegisterPage />} path="/cadastro" />
+          <Route element={<ProtectedRoute />}>
+            <Route element={<AppShell />}>
+              <Route element={<HomePage />} path="app" />
+              <Route element={<MenuPage />} path="cardapio" />
+              <Route element={<DeliveryPage />} path="delivery" />
+              <Route element={<ReservationsPage />} path="reservas" />
+              <Route element={<ProfilePage />} path="perfil" />
+              <Route element={<AdminRoute />}>
+                <Route element={<CustomersPage />} path="clientes" />
+              </Route>
             </Route>
           </Route>
-        </Route>
-        <Route element={<Navigate replace to="/" />} path="*" />
-      </Routes>
-    </Suspense>
+          <Route element={<Navigate replace to="/" />} path="*" />
+        </Routes>
+      </Suspense>
+    </AppErrorBoundary>
   );
 }

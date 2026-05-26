@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { EmptyState } from "../../components/layout/EmptyState";
+import { ErrorState } from "../../components/layout/ErrorState";
 import { PageHeader } from "../../components/layout/PageHeader";
 import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
@@ -23,6 +24,7 @@ import {
   createMenuItem,
   deleteMenuCategory,
   deleteMenuItem,
+  getApiErrorMessage,
   listMenuCategories,
   listMenuItems,
   updateMenuCategory,
@@ -73,7 +75,7 @@ function CategoryDialog({ open, onOpenChange, category, onSaved }) {
       onSaved();
       onOpenChange(false);
     },
-    onError: (error) => toast.error(error.message)
+    onError: (error) => toast.error(getApiErrorMessage(error))
   });
 
   return (
@@ -135,7 +137,7 @@ function ItemDialog({ open, onOpenChange, item, categories }) {
       toast.success(item ? "Item atualizado" : "Item criado");
       onOpenChange(false);
     },
-    onError: (error) => toast.error(error.message)
+    onError: (error) => toast.error(getApiErrorMessage(error))
   });
 
   return (
@@ -233,7 +235,7 @@ export function MenuPage() {
       ]);
       toast.success("Categoria removida");
     },
-    onError: (error) => toast.error(error.message)
+    onError: (error) => toast.error(getApiErrorMessage(error))
   });
 
   const deleteItemMutation = useMutation({
@@ -242,7 +244,7 @@ export function MenuPage() {
       await queryClient.invalidateQueries({ queryKey: ["menu-items"] });
       toast.success("Item removido");
     },
-    onError: (error) => toast.error(error.message)
+    onError: (error) => toast.error(getApiErrorMessage(error))
   });
 
   function openCategoryDialog(category) {
@@ -310,7 +312,7 @@ export function MenuPage() {
                     <SelectValue placeholder="Categoria" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Todas categorias</SelectItem>
+                    <SelectItem value="all">Todas as categorias</SelectItem>
                     {categories.map((category) => (
                       <SelectItem key={category.id} value={category.id}>
                         {category.name}
@@ -337,6 +339,10 @@ export function MenuPage() {
                   {Array.from({ length: 6 }).map((_, index) => (
                     <Skeleton className="h-64 w-full" key={index} />
                   ))}
+                </div>
+              ) : itemsQuery.isError ? (
+                <div className="p-4">
+                  <ErrorState onRetry={() => itemsQuery.refetch()} />
                 </div>
               ) : items.length === 0 ? (
                 <div className="p-4">
@@ -391,6 +397,10 @@ export function MenuPage() {
                     {Array.from({ length: 4 }).map((_, index) => (
                       <Skeleton className="h-20 w-full" key={index} />
                     ))}
+                  </div>
+                ) : categoriesQuery.isError ? (
+                  <div className="p-4">
+                    <ErrorState onRetry={() => categoriesQuery.refetch()} />
                   </div>
                 ) : categories.length === 0 ? (
                   <div className="p-4">

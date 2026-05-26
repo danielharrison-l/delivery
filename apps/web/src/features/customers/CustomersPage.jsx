@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { EmptyState } from "../../components/layout/EmptyState";
+import { ErrorState } from "../../components/layout/ErrorState";
 import { PageHeader } from "../../components/layout/PageHeader";
 import { Button } from "../../components/ui/button";
 import { Card, CardContent } from "../../components/ui/card";
@@ -16,7 +17,7 @@ import { PaginationControls } from "../../components/ui/pagination-controls";
 import { Skeleton } from "../../components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table";
 import { Textarea } from "../../components/ui/textarea";
-import { createCustomer, deleteCustomer, listCustomers, updateCustomer } from "../../lib/api";
+import { createCustomer, deleteCustomer, getApiErrorMessage, listCustomers, updateCustomer } from "../../lib/api";
 import { paginationDefaults } from "../../lib/constants";
 import { formatDate } from "../../lib/formatters";
 
@@ -52,7 +53,7 @@ function CustomerDialog({ open, onOpenChange, customer }) {
       toast.success(customer ? "Cliente atualizado" : "Cliente criado");
       onOpenChange(false);
     },
-    onError: (error) => toast.error(error.message)
+    onError: (error) => toast.error(getApiErrorMessage(error))
   });
 
   function handleSubmit(values) {
@@ -109,7 +110,7 @@ export function CustomersPage() {
       await queryClient.invalidateQueries({ queryKey: ["customers"] });
       toast.success("Cliente removido");
     },
-    onError: (error) => toast.error(error.message)
+    onError: (error) => toast.error(getApiErrorMessage(error))
   });
 
   function openCreateDialog() {
@@ -164,6 +165,10 @@ export function CustomersPage() {
               {Array.from({ length: 5 }).map((_, index) => (
                 <Skeleton className="h-14 w-full" key={index} />
               ))}
+            </div>
+          ) : query.isError ? (
+            <div className="p-4">
+              <ErrorState onRetry={() => query.refetch()} />
             </div>
           ) : customers.length === 0 ? (
             <div className="p-4">

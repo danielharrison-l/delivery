@@ -7,6 +7,7 @@ import { logout } from "../../lib/api";
 import { Button } from "../ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog";
 import { Separator } from "../ui/separator";
+import { ThemeToggle } from "./ThemeToggle";
 
 const baseNavigationItems = [
   { to: "/app", label: "Principal", icon: Home },
@@ -70,6 +71,7 @@ export function AppShell() {
 
         <div className="mt-auto grid gap-4">
           <Separator />
+          <ThemeToggle className="justify-self-start" variant="outline" />
           <div className="px-2">
             <p className="truncate text-sm font-medium">{customer?.name ?? "Visitante"}</p>
             <p className="truncate text-xs text-muted-foreground">{customer?.email ?? "Sem sessão"}</p>
@@ -87,33 +89,36 @@ export function AppShell() {
             <ChefHat className="h-5 w-5 shrink-0 text-primary" />
             <span className="truncate text-sm font-semibold">Terraço Bistrô</span>
           </div>
-          <Dialog open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-            <DialogTrigger asChild>
-              <Button aria-label="Abrir menu" size="icon" type="button" variant="ghost">
-                <Menu className="h-5 w-5" />
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="top-4 w-[calc(100%-1.5rem)] translate-y-0 gap-5 sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>Menu</DialogTitle>
-              </DialogHeader>
-              <div className="grid gap-4">
-                <div className="rounded-lg border bg-background p-3">
-                  <p className="truncate text-sm font-medium">{customer?.name ?? "Visitante"}</p>
-                  <p className="truncate text-xs text-muted-foreground">{customer?.email ?? "Sem sessão"}</p>
-                </div>
-                <nav className="grid gap-1">
-                  {navigationItems.map((item) => (
-                    <NavigationLink item={item} key={item.to} onNavigate={() => setMobileMenuOpen(false)} />
-                  ))}
-                </nav>
-                <Button className="justify-start" onClick={handleLogout} type="button" variant="outline">
-                  <LogOut className="h-4 w-4" />
-                  Sair
+          <div className="flex items-center gap-1">
+            <ThemeToggle />
+            <Dialog open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+              <DialogTrigger asChild>
+                <Button aria-label="Abrir menu" size="icon" type="button" variant="ghost">
+                  <Menu className="h-5 w-5" />
                 </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+              </DialogTrigger>
+              <DialogContent className="top-4 w-[calc(100%-1.5rem)] translate-y-0 gap-5 sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Menu</DialogTitle>
+                </DialogHeader>
+                <div className="grid gap-4">
+                  <div className="rounded-lg border bg-background p-3">
+                    <p className="truncate text-sm font-medium">{customer?.name ?? "Visitante"}</p>
+                    <p className="truncate text-xs text-muted-foreground">{customer?.email ?? "Sem sessão"}</p>
+                  </div>
+                  <nav className="grid gap-1">
+                    {navigationItems.map((item) => (
+                      <NavigationLink item={item} key={item.to} onNavigate={() => setMobileMenuOpen(false)} />
+                    ))}
+                  </nav>
+                  <Button className="justify-start" onClick={handleLogout} type="button" variant="outline">
+                    <LogOut className="h-4 w-4" />
+                    Sair
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
       </header>
 

@@ -9,6 +9,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { EmptyState } from "../../components/layout/EmptyState";
+import { ErrorState } from "../../components/layout/ErrorState";
 import { PageHeader } from "../../components/layout/PageHeader";
 import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
@@ -21,7 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Skeleton } from "../../components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table";
 import { Textarea } from "../../components/ui/textarea";
-import { createReservation, deleteReservation, listReservations, updateReservationStatus } from "../../lib/api";
+import { createReservation, deleteReservation, getApiErrorMessage, listReservations, updateReservationStatus } from "../../lib/api";
 import { paginationDefaults, reservationStatusOptions, statusLabels } from "../../lib/constants";
 import { formatDateTime } from "../../lib/formatters";
 import { useAuthStore } from "../auth/store";
@@ -83,7 +84,7 @@ function ReservationDialog({ open, onOpenChange }) {
       setErrors({});
       onOpenChange(false);
     },
-    onError: (error) => toast.error(error.message)
+    onError: (error) => toast.error(getApiErrorMessage(error))
   });
 
   function updateValue(field, value) {
@@ -100,12 +101,17 @@ function ReservationDialog({ open, onOpenChange }) {
       return;
     }
 
-    const payload = createAuthenticatedReservationSchema.parse({
+    const payload = createAuthenticatedReservationSchema.safeParse({
       ...parsed.data,
       reservationDate: toIsoDateTime(parsed.data.reservationDate)
     });
 
-    mutation.mutate(payload);
+    if (!payload.success) {
+      toast.error("Confira os dados da reserva.");
+      return;
+    }
+
+    mutation.mutate(payload.data);
   }
 
   return (
@@ -180,7 +186,7 @@ export function ReservationsPage() {
       await queryClient.invalidateQueries({ queryKey: ["reservations"] });
       toast.success("Status atualizado");
     },
-    onError: (error) => toast.error(error.message)
+    onError: (error) => toast.error(getApiErrorMessage(error))
   });
 
   const deleteMutation = useMutation({
@@ -189,7 +195,7 @@ export function ReservationsPage() {
       await queryClient.invalidateQueries({ queryKey: ["reservations"] });
       toast.success("Reserva removida");
     },
-    onError: (error) => toast.error(error.message)
+    onError: (error) => toast.error(getApiErrorMessage(error))
   });
 
   function confirmDelete(reservation) {
@@ -246,7 +252,7 @@ export function ReservationsPage() {
             />
             <div className="hidden items-center gap-2 text-sm text-muted-foreground md:flex">
               <Search className="h-4 w-4" />
-              {meta ? `${meta.total} reservas encontradas` : "Buscando reservas"}
+              {meta ? `${meta.total} ${meta.total === 1 ? "reserva encontrada" : "reservas encontradas"}` : "Buscando reservas"}
             </div>
           </div>
 
@@ -255,6 +261,10 @@ export function ReservationsPage() {
               {Array.from({ length: 5 }).map((_, index) => (
                 <Skeleton className="h-14 w-full" key={index} />
               ))}
+            </div>
+          ) : query.isError ? (
+            <div className="p-4">
+              <ErrorState onRetry={() => query.refetch()} />
             </div>
           ) : reservations.length === 0 ? (
             <div className="p-4">
