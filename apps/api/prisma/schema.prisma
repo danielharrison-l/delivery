@@ -21,6 +21,29 @@ model Customer {
   reservations Reservation[]
   orders       DeliveryOrder[]
   refreshTokens RefreshToken[]
+  addresses    CustomerAddress[]
+}
+
+model CustomerAddress {
+  id           String   @id @default(uuid()) @db.Uuid
+  label        String
+  street       String
+  number       String
+  neighborhood String
+  city         String
+  state        String
+  zipCode      String?
+  complement   String?
+  isDefault    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  customerId String   @db.Uuid
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  orders DeliveryOrder[]
+
+  @@index([customerId])
 }
 
 model RefreshToken {
@@ -52,6 +75,10 @@ model MenuItem {
   price       Decimal  @db.Decimal(10, 2)
   imageUrl    String?
   available   Boolean  @default(true)
+  featured    Boolean  @default(false)
+  popular     Boolean  @default(false)
+  isNew       Boolean  @default(false)
+  displayOrder Int     @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -79,12 +106,14 @@ model DeliveryOrder {
   status          DeliveryOrderStatus @default(PREPARING)
   totalAmount     Decimal             @default(0) @db.Decimal(10, 2)
   deliveryAddress String
+  addressId       String?             @db.Uuid
   createdAt       DateTime            @default(now())
   updatedAt       DateTime            @updatedAt
 
   customerId String   @db.Uuid
   customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
 
+  address CustomerAddress? @relation(fields: [addressId], references: [id], onDelete: SetNull)
   items DeliveryOrderItem[]
 }
 

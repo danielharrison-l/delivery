@@ -16,7 +16,9 @@ const categories = [
         name: "Bruschetta",
         description: "Pão tostado com tomate, manjericão e azeite",
         price: "24.90",
-        imageUrl: "https://images.unsplash.com/photo-1543353071-087092ec393a?auto=format&fit=crop&w=900&q=80"
+        imageUrl: "https://images.unsplash.com/photo-1543353071-087092ec393a?auto=format&fit=crop&w=900&q=80",
+        popular: true,
+        displayOrder: 5
       },
       {
         name: "Polenta Crocante",
@@ -46,19 +48,28 @@ const categories = [
         name: "Costela Urbana",
         description: "Costela assada lentamente com legumes, ervas frescas e molho da casa",
         price: "124.00",
-        imageUrl: "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=900&q=80"
+        imageUrl: "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=900&q=80",
+        featured: true,
+        popular: true,
+        displayOrder: 1
       },
       {
         name: "Pappardelle Bosco",
         description: "Massa fresca com pesto, tomate e finalização de ervas",
         price: "89.00",
-        imageUrl: "https://images.unsplash.com/photo-1473093295043-cdd812d0e601?auto=format&fit=crop&w=900&q=80"
+        imageUrl: "https://images.unsplash.com/photo-1473093295043-cdd812d0e601?auto=format&fit=crop&w=900&q=80",
+        featured: true,
+        popular: true,
+        displayOrder: 2
       },
       {
         name: "Salmão Glacé",
         description: "Salmão grelhado com legumes frescos e molho cítrico",
         price: "112.00",
-        imageUrl: "https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=900&q=80"
+        imageUrl: "https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=900&q=80",
+        featured: true,
+        popular: true,
+        displayOrder: 3
       }
     ]
   },
@@ -70,7 +81,9 @@ const categories = [
         name: "Limonada Fresca",
         description: "Limonada com hortelã e água com gás",
         price: "14.90",
-        imageUrl: "https://images.unsplash.com/photo-1502741224143-90386d7f8c82?auto=format&fit=crop&w=900&q=80"
+        imageUrl: "https://images.unsplash.com/photo-1502741224143-90386d7f8c82?auto=format&fit=crop&w=900&q=80",
+        isNew: true,
+        displayOrder: 4
       },
       {
         name: "Chá Gelado",

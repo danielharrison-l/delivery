@@ -8,6 +8,7 @@ import type { DeliveryRepositoryContract } from "./delivery.repository.contract"
 import { DELIVERY_REPOSITORY } from "./delivery.tokens";
 import type {
   DeliveryMenuItemPriceRecord,
+  DeliveryAddressRecord,
   DeliveryOrderCreateData,
   DeliveryOrderDto,
   DeliveryOrderFindManyQuery,
@@ -50,13 +51,14 @@ export class DeliveryService {
 
   async create(data: DeliveryOrderCreateData): Promise<DeliveryOrderDto> {
     await this.ensureCustomerExists(data.customerId);
+    const deliveryAddress = await this.resolveDeliveryAddress(data);
     const menuItems = await this.findAvailableMenuItemsOrFail(data);
     const menuItemById = new Map(menuItems.map((item) => [item.id, item]));
     const totalAmount = this.calculateTotalAmount(data, menuItemById);
 
     try {
       const order = await this.deliveryRepository.create(
-        deliveryMapper.toCreateData(data, totalAmount, this.toOrderItems(data, menuItemById))
+        deliveryMapper.toCreateData(data, deliveryAddress, totalAmount, this.toOrderItems(data, menuItemById))
       );
       return deliveryMapper.toDto(order);
     } catch (error) {
@@ -138,6 +140,37 @@ export class DeliveryService {
       return menuItems;
     } catch (error) {
       if (error instanceof BadRequestException) {
+        throw error;
+      }
+
+      this.handleDatabaseError(error);
+    }
+  }
+
+  private async resolveDeliveryAddress(data: DeliveryOrderCreateData): Promise<string> {
+    if (data.addressId) {
+      const address = await this.findAddressForCustomerOrFail(data.addressId, data.customerId);
+      return deliveryMapper.toAddressText(address);
+    }
+
+    if (data.deliveryAddress) {
+      return data.deliveryAddress;
+    }
+
+    throw new BadRequestException(deliveryErrors.addressNotFound);
+  }
+
+  private async findAddressForCustomerOrFail(id: string, customerId: string): Promise<DeliveryAddressRecord> {
+    try {
+      const address = await this.deliveryRepository.findCustomerAddressById(id);
+
+      if (!address || address.customerId !== customerId) {
+        throw new NotFoundException(deliveryErrors.addressNotFound);
+      }
+
+      return address;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
         throw error;
       }
 

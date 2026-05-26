@@ -1,5 +1,8 @@
 import {
   authSessionSchema,
+  customerAddressSchema,
+  customerAddressesSchema,
+  customerHomeSchema,
   customerSchema,
   deliveryOrderSchema,
   healthSchema,
@@ -41,7 +44,10 @@ const errorMessagesByCode = {
   RESERVATION_CUSTOMER_NOT_FOUND: "Cliente não encontrado.",
   DELIVERY_NOT_FOUND: "Pedido não encontrado.",
   DELIVERY_CUSTOMER_NOT_FOUND: "Cliente não encontrado.",
-  DELIVERY_UNAVAILABLE_ITEMS: "Um ou mais itens estão indisponíveis."
+  DELIVERY_ADDRESS_NOT_FOUND: "Endereço não encontrado.",
+  DELIVERY_UNAVAILABLE_ITEMS: "Um ou mais itens estão indisponíveis.",
+  DELIVERY_RESTAURANT_CLOSED: "O delivery está fechado no momento.",
+  ADDRESS_NOT_FOUND: "Endereço não encontrado."
 };
 
 const fallbackMessagesByStatus = {
@@ -179,10 +185,34 @@ export function getMe() {
   return request("/auth/me", { schema: customerSchema, auth: true });
 }
 
+export function getCustomerHome() {
+  return request("/home", { schema: customerHomeSchema, auth: true });
+}
+
 export async function updateProfile(data) {
   const customer = await request("/auth/me", { schema: customerSchema, method: "PATCH", body: data, auth: true });
   useAuthStore.getState().setCustomer(customer);
   return customer;
+}
+
+export function listAddresses() {
+  return request("/addresses", { schema: customerAddressesSchema, auth: true });
+}
+
+export function createAddress(data) {
+  return request("/addresses", { schema: customerAddressSchema, method: "POST", body: data, auth: true });
+}
+
+export function updateAddress(id, data) {
+  return request(`/addresses/${id}`, { schema: customerAddressSchema, method: "PATCH", body: data, auth: true });
+}
+
+export function setDefaultAddress(id) {
+  return request(`/addresses/${id}/default`, { schema: customerAddressSchema, method: "PATCH", auth: true });
+}
+
+export function deleteAddress(id) {
+  return request(`/addresses/${id}`, { method: "DELETE", auth: true });
 }
 
 export function listCustomers(params = {}) {

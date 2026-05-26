@@ -1,4 +1,5 @@
 import { Prisma } from "@prisma/client";
+import { addressesMapper } from "../addresses/addresses.mapper";
 import { customersMapper } from "../customers/customers.mapper";
 import { menuMapper } from "../menu/menu.mapper";
 import type {
@@ -32,6 +33,7 @@ function toDto(order: DeliveryOrderRecord): DeliveryOrderDto {
 
 function toCreateData(
   data: DeliveryOrderCreateData,
+  deliveryAddress: string,
   totalAmount: Prisma.Decimal,
   items: DeliveryOrderCreateItemData[]
 ): Prisma.DeliveryOrderCreateInput {
@@ -39,7 +41,8 @@ function toCreateData(
     customer: {
       connect: { id: data.customerId }
     },
-    deliveryAddress: data.deliveryAddress,
+    address: data.addressId ? { connect: { id: data.addressId } } : undefined,
+    deliveryAddress,
     totalAmount,
     items: {
       create: items.map((item) => ({
@@ -59,8 +62,11 @@ function toStatusUpdateData(data: DeliveryOrderStatusUpdateData): Prisma.Deliver
   };
 }
 
+const toAddressText = addressesMapper.toSingleLine;
+
 export const deliveryMapper = {
   toDto,
   toCreateData,
+  toAddressText,
   toStatusUpdateData
 } as const;

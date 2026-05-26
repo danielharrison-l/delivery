@@ -59,6 +59,40 @@ const customerSchema = {
   required: ["id", "name", "email", "phone", "role", "address", "createdAt", "updatedAt"]
 } satisfies SchemaObject;
 
+const customerAddressSchema = {
+  type: "object",
+  properties: {
+    id: { type: "string", format: "uuid" },
+    label: { type: "string", example: "Casa" },
+    street: { type: "string", example: "Rua Central" },
+    number: { type: "string", example: "100" },
+    neighborhood: { type: "string", example: "Centro" },
+    city: { type: "string", example: "São Paulo" },
+    state: { type: "string", example: "SP" },
+    zipCode: { type: "string", nullable: true, example: "01000-000" },
+    complement: { type: "string", nullable: true, example: "Apto 12" },
+    isDefault: { type: "boolean", example: true },
+    customerId: { type: "string", format: "uuid" },
+    createdAt: { type: "string", format: "date-time" },
+    updatedAt: { type: "string", format: "date-time" }
+  },
+  required: [
+    "id",
+    "label",
+    "street",
+    "number",
+    "neighborhood",
+    "city",
+    "state",
+    "zipCode",
+    "complement",
+    "isDefault",
+    "customerId",
+    "createdAt",
+    "updatedAt"
+  ]
+} satisfies SchemaObject;
+
 const menuCategorySchema = {
   type: "object",
   properties: {
@@ -80,6 +114,10 @@ const menuItemSchema = {
     price: { type: "number", example: 54.9 },
     imageUrl: { type: "string", nullable: true, example: "https://example.com/risotto.jpg" },
     available: { type: "boolean", example: true },
+    featured: { type: "boolean", example: true },
+    popular: { type: "boolean", example: true },
+    isNew: { type: "boolean", example: false },
+    displayOrder: { type: "integer", example: 1 },
     categoryId: { type: "string", format: "uuid" },
     createdAt: { type: "string", format: "date-time" },
     updatedAt: { type: "string", format: "date-time" },
@@ -92,6 +130,10 @@ const menuItemSchema = {
     "price",
     "imageUrl",
     "available",
+    "featured",
+    "popular",
+    "isNew",
+    "displayOrder",
     "categoryId",
     "createdAt",
     "updatedAt"
@@ -144,13 +186,14 @@ const deliveryOrderSchema = {
     status: { $ref: "#/components/schemas/DeliveryOrderStatus" },
     totalAmount: { type: "number", example: 53.8 },
     deliveryAddress: { type: "string", example: "Rua Central, 100" },
+    addressId: { type: "string", format: "uuid", nullable: true },
     customerId: { type: "string", format: "uuid" },
     createdAt: { type: "string", format: "date-time" },
     updatedAt: { type: "string", format: "date-time" },
     customer: { $ref: "#/components/schemas/Customer" },
     items: { type: "array", items: { $ref: "#/components/schemas/DeliveryOrderItem" } }
   },
-  required: ["id", "status", "totalAmount", "deliveryAddress", "customerId", "createdAt", "updatedAt"]
+  required: ["id", "status", "totalAmount", "deliveryAddress", "addressId", "customerId", "createdAt", "updatedAt"]
 } satisfies SchemaObject;
 
 const idParam = {
@@ -223,6 +266,8 @@ export const openApiDocument: OpenAPIObject = {
   tags: [
     { name: "Health" },
     { name: "Auth" },
+    { name: "Home" },
+    { name: "Addresses" },
     { name: "Customers" },
     { name: "Menu Categories" },
     { name: "Menu Items" },
@@ -301,6 +346,73 @@ export const openApiDocument: OpenAPIObject = {
           "200": response("Authenticated customer updated", "#/components/schemas/Customer"),
           "401": response("Invalid access token", "#/components/schemas/ErrorResponse"),
           "409": response("Customer email already exists", "#/components/schemas/ErrorResponse")
+        }
+      }
+    },
+    "/api/home": {
+      get: {
+        tags: ["Home"],
+        summary: "Get customer home data",
+        security: bearerSecurity,
+        responses: {
+          "200": response("Customer home", "#/components/schemas/CustomerHome"),
+          "401": response("Invalid access token", "#/components/schemas/ErrorResponse")
+        }
+      }
+    },
+    "/api/addresses": {
+      get: {
+        tags: ["Addresses"],
+        summary: "List authenticated customer addresses",
+        security: bearerSecurity,
+        responses: {
+          "200": arrayResponse("Customer addresses", "#/components/schemas/CustomerAddress"),
+          "401": response("Invalid access token", "#/components/schemas/ErrorResponse")
+        }
+      },
+      post: {
+        tags: ["Addresses"],
+        summary: "Create authenticated customer address",
+        security: bearerSecurity,
+        requestBody: body("#/components/schemas/CreateCustomerAddress"),
+        responses: {
+          "201": response("Customer address created", "#/components/schemas/CustomerAddress"),
+          "401": response("Invalid access token", "#/components/schemas/ErrorResponse")
+        }
+      }
+    },
+    "/api/addresses/{id}": {
+      patch: {
+        tags: ["Addresses"],
+        summary: "Update authenticated customer address",
+        security: bearerSecurity,
+        parameters: [idParam],
+        requestBody: body("#/components/schemas/UpdateCustomerAddress"),
+        responses: {
+          "200": response("Customer address updated", "#/components/schemas/CustomerAddress"),
+          "404": response("Address not found", "#/components/schemas/ErrorResponse")
+        }
+      },
+      delete: {
+        tags: ["Addresses"],
+        summary: "Delete authenticated customer address",
+        security: bearerSecurity,
+        parameters: [idParam],
+        responses: {
+          "204": { description: "Address deleted" },
+          "404": response("Address not found", "#/components/schemas/ErrorResponse")
+        }
+      }
+    },
+    "/api/addresses/{id}/default": {
+      patch: {
+        tags: ["Addresses"],
+        summary: "Set authenticated customer default address",
+        security: bearerSecurity,
+        parameters: [idParam],
+        responses: {
+          "200": response("Default address updated", "#/components/schemas/CustomerAddress"),
+          "404": response("Address not found", "#/components/schemas/ErrorResponse")
         }
       }
     },
@@ -658,12 +770,90 @@ export const openApiDocument: OpenAPIObject = {
         properties: {
           name: { type: "string", minLength: 2, maxLength: 100 },
           email: { type: "string", format: "email", maxLength: 255 },
-          phone: { type: "string", minLength: 8, maxLength: 20 },
-          address: { type: "string", minLength: 5, maxLength: 255 }
+          phone: { type: "string", minLength: 8, maxLength: 20 }
         },
         required: ["name", "email"]
       },
       Customer: customerSchema,
+      CustomerAddress: customerAddressSchema,
+      CreateCustomerAddress: {
+        type: "object",
+        properties: {
+          label: { type: "string", minLength: 2, maxLength: 40 },
+          street: { type: "string", minLength: 2, maxLength: 120 },
+          number: { type: "string", minLength: 1, maxLength: 20 },
+          neighborhood: { type: "string", minLength: 2, maxLength: 80 },
+          city: { type: "string", minLength: 2, maxLength: 80 },
+          state: { type: "string", minLength: 2, maxLength: 2 },
+          zipCode: { type: "string", minLength: 8, maxLength: 12 },
+          complement: { type: "string", maxLength: 120 },
+          isDefault: { type: "boolean" }
+        },
+        required: ["label", "street", "number", "neighborhood", "city", "state"]
+      },
+      UpdateCustomerAddress: {
+        type: "object",
+        properties: {
+          label: { type: "string", minLength: 2, maxLength: 40 },
+          street: { type: "string", minLength: 2, maxLength: 120 },
+          number: { type: "string", minLength: 1, maxLength: 20 },
+          neighborhood: { type: "string", minLength: 2, maxLength: 80 },
+          city: { type: "string", minLength: 2, maxLength: 80 },
+          state: { type: "string", minLength: 2, maxLength: 2 },
+          zipCode: { type: "string", minLength: 8, maxLength: 12 },
+          complement: { type: "string", maxLength: 120 },
+          isDefault: { type: "boolean" }
+        }
+      },
+      RestaurantStatus: {
+        type: "object",
+        properties: {
+          isOpen: { type: "boolean" },
+          deliveryAvailable: { type: "boolean" },
+          reservationsAvailable: { type: "boolean" },
+          currentLabel: { type: "string", example: "Aberto até 22:30" },
+          nextChangeLabel: { type: "string", example: "Pedidos e reservas disponíveis até 22:30." },
+          deliveryEstimateMinutes: {
+            type: "object",
+            properties: {
+              min: { type: "integer", example: 35 },
+              max: { type: "integer", example: 45 }
+            },
+            required: ["min", "max"]
+          }
+        },
+        required: [
+          "isOpen",
+          "deliveryAvailable",
+          "reservationsAvailable",
+          "currentLabel",
+          "nextChangeLabel",
+          "deliveryEstimateMinutes"
+        ]
+      },
+      CustomerHome: {
+        type: "object",
+        properties: {
+          restaurantStatus: { $ref: "#/components/schemas/RestaurantStatus" },
+          defaultAddress: { allOf: [{ $ref: "#/components/schemas/CustomerAddress" }], nullable: true },
+          activeOrder: { allOf: [{ $ref: "#/components/schemas/DeliveryOrder" }], nullable: true },
+          lastOrder: { allOf: [{ $ref: "#/components/schemas/DeliveryOrder" }], nullable: true },
+          nextReservation: { allOf: [{ $ref: "#/components/schemas/Reservation" }], nullable: true },
+          featuredItems: { type: "array", items: { $ref: "#/components/schemas/MenuItem" } },
+          popularItems: { type: "array", items: { $ref: "#/components/schemas/MenuItem" } },
+          categories: { type: "array", items: { $ref: "#/components/schemas/MenuCategory" } }
+        },
+        required: [
+          "restaurantStatus",
+          "defaultAddress",
+          "activeOrder",
+          "lastOrder",
+          "nextReservation",
+          "featuredItems",
+          "popularItems",
+          "categories"
+        ]
+      },
       CreateCustomer: {
         type: "object",
         properties: {
@@ -716,6 +906,10 @@ export const openApiDocument: OpenAPIObject = {
           price: { type: "number", minimum: 0.01 },
           imageUrl: { type: "string", format: "uri", maxLength: 255 },
           available: { type: "boolean", default: true },
+          featured: { type: "boolean", default: false },
+          popular: { type: "boolean", default: false },
+          isNew: { type: "boolean", default: false },
+          displayOrder: { type: "integer", minimum: 0, maximum: 9999 },
           categoryId: { type: "string", format: "uuid" }
         },
         required: ["name", "price", "categoryId"]
@@ -728,6 +922,10 @@ export const openApiDocument: OpenAPIObject = {
           price: { type: "number", minimum: 0.01 },
           imageUrl: { type: "string", format: "uri", maxLength: 255 },
           available: { type: "boolean" },
+          featured: { type: "boolean" },
+          popular: { type: "boolean" },
+          isNew: { type: "boolean" },
+          displayOrder: { type: "integer", minimum: 0, maximum: 9999 },
           categoryId: { type: "string", format: "uuid" }
         }
       },
@@ -771,6 +969,7 @@ export const openApiDocument: OpenAPIObject = {
       CreateDeliveryOrder: {
         type: "object",
         properties: {
+          addressId: { type: "string", format: "uuid" },
           deliveryAddress: { type: "string", minLength: 5, maxLength: 255 },
           items: {
             type: "array",
@@ -785,7 +984,7 @@ export const openApiDocument: OpenAPIObject = {
             }
           }
         },
-        required: ["deliveryAddress", "items"]
+        required: ["items"]
       },
       UpdateDeliveryOrderStatus: {
         type: "object",

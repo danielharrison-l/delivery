@@ -10,9 +10,10 @@ export const deliveryOrderStatusSchema = z.enum([
   "CANCELLED"
 ]);
 
-export const createDeliveryOrderSchema = z.object({
+const createDeliveryOrderBaseSchema = z.object({
   customerId: z.string().uuid(),
-  deliveryAddress: z.string().trim().min(5).max(255),
+  deliveryAddress: z.string().trim().min(5).max(255).optional(),
+  addressId: z.string().uuid().optional(),
   items: z.array(
     z.object({
       menuItemId: z.string().uuid(),
@@ -21,8 +22,16 @@ export const createDeliveryOrderSchema = z.object({
   ).min(1)
 });
 
-export const createAuthenticatedDeliveryOrderSchema = createDeliveryOrderSchema.omit({
+export const createDeliveryOrderSchema = createDeliveryOrderBaseSchema.refine((value) => Boolean(value.deliveryAddress || value.addressId), {
+  path: ["deliveryAddress"],
+  message: "Informe um endereço de entrega."
+});
+
+export const createAuthenticatedDeliveryOrderSchema = createDeliveryOrderBaseSchema.omit({
   customerId: true
+}).refine((value) => Boolean(value.deliveryAddress || value.addressId), {
+  path: ["deliveryAddress"],
+  message: "Informe um endereço de entrega."
 });
 
 export const updateDeliveryOrderStatusSchema = z.object({
@@ -44,6 +53,7 @@ export const deliveryOrderSchema = z.object({
   status: deliveryOrderStatusSchema,
   totalAmount: z.coerce.number(),
   deliveryAddress: z.string(),
+  addressId: z.string().uuid().nullable(),
   customerId: z.string().uuid(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),

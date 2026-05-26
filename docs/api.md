@@ -116,7 +116,7 @@ Rota privada. Retorna o cliente autenticado.
 
 ### `PATCH /auth/me`
 
-Rota privada. Atualiza os dados do perfil do cliente autenticado. Use essa rota para salvar telefone e endereço padrão de delivery.
+Rota privada. Atualiza os dados pessoais do cliente autenticado. Endereços de delivery devem usar as rotas de endereços.
 
 Body:
 
@@ -124,12 +124,84 @@ Body:
 {
   "name": "Ana Silva",
   "email": "ana@example.com",
-  "phone": "11999998888",
-  "address": "Rua Central, 100"
+  "phone": "11999998888"
 }
 ```
 
 Campos obrigatorios: `name`, `email`.
+
+## Home
+
+### `GET /home`
+
+Rota privada. Retorna os dados agregados para a tela inicial do cliente.
+
+Resposta:
+
+```json
+{
+  "restaurantStatus": {
+    "isOpen": true,
+    "deliveryAvailable": true,
+    "reservationsAvailable": true,
+    "currentLabel": "Aberto até 22:30",
+    "nextChangeLabel": "Pedidos e reservas disponíveis até 22:30.",
+    "deliveryEstimateMinutes": {
+      "min": 35,
+      "max": 45
+    }
+  },
+  "defaultAddress": {},
+  "activeOrder": {},
+  "lastOrder": {},
+  "nextReservation": {},
+  "featuredItems": [],
+  "popularItems": [],
+  "categories": []
+}
+```
+
+## Addresses
+
+Todas as rotas de endereços são privadas e sempre usam o cliente autenticado.
+
+### `GET /addresses`
+
+Lista os endereços salvos do cliente.
+
+### `POST /addresses`
+
+Cria um endereço.
+
+Body:
+
+```json
+{
+  "label": "Casa",
+  "street": "Rua Central",
+  "number": "100",
+  "neighborhood": "Centro",
+  "city": "São Paulo",
+  "state": "SP",
+  "zipCode": "01000-000",
+  "complement": "Apto 12",
+  "isDefault": true
+}
+```
+
+Campos obrigatórios: `label`, `street`, `number`, `neighborhood`, `city`, `state`.
+
+### `PATCH /addresses/:id`
+
+Atualiza um endereço do cliente autenticado.
+
+### `PATCH /addresses/:id/default`
+
+Define um endereço como padrão.
+
+### `DELETE /addresses/:id`
+
+Remove um endereço.
 
 ## Health
 
@@ -261,6 +333,10 @@ Body:
   "price": 54.9,
   "imageUrl": "https://example.com/risotto.jpg",
   "available": true,
+  "featured": true,
+  "popular": true,
+  "isNew": false,
+  "displayOrder": 1,
   "categoryId": "00000000-0000-0000-0000-000000000000"
 }
 ```
@@ -372,13 +448,13 @@ Busca um pedido por `id`.
 
 ### `POST /delivery/orders`
 
-Cria um pedido. O backend calcula `totalAmount` usando o preco atual dos itens.
+Cria um pedido. O backend calcula `totalAmount` usando o preço atual dos itens. Envie `addressId` para usar um endereço salvo ou `deliveryAddress` para informar um endereço manualmente.
 
 Body:
 
 ```json
 {
-  "deliveryAddress": "Rua Central, 100",
+  "addressId": "00000000-0000-0000-0000-000000000000",
   "items": [
     {
       "menuItemId": "00000000-0000-0000-0000-000000000000",
@@ -388,7 +464,7 @@ Body:
 }
 ```
 
-Campos obrigatorios: `deliveryAddress`, `items`.
+Campos obrigatórios: `items` e pelo menos um entre `addressId` ou `deliveryAddress`.
 
 ### `PATCH /delivery/orders/:id/status`
 

@@ -15,7 +15,7 @@ import { PaginationControls } from "../../components/ui/pagination-controls";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 import { Skeleton } from "../../components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table";
-import { createDeliveryOrder, deleteDeliveryOrder, getApiErrorMessage, listDeliveryOrders, listMenuItems, updateDeliveryOrderStatus } from "../../lib/api";
+import { createDeliveryOrder, deleteDeliveryOrder, getApiErrorMessage, listAddresses, listDeliveryOrders, listMenuItems, updateDeliveryOrderStatus } from "../../lib/api";
 import { deliveryStatusOptions, paginationDefaults, statusLabels } from "../../lib/constants";
 import { formatCurrency, formatDateTime } from "../../lib/formatters";
 import { useAuthStore } from "../auth/store";
@@ -38,6 +38,7 @@ export function DeliveryPage() {
   const customer = useAuthStore((state) => state.customer);
   const isAdmin = customer?.role === "ADMIN";
   const [address, setAddress] = useState("");
+  const [selectedAddressId, setSelectedAddressId] = useState("");
   const [status, setStatus] = useState("all");
   const [page, setPage] = useState(paginationDefaults.page);
   const items = useCartStore((state) => state.items);
@@ -51,6 +52,18 @@ export function DeliveryPage() {
       setAddress(customer.address);
     }
   }, [address, customer?.address]);
+
+  const addressesQuery = useQuery({
+    queryKey: ["addresses"],
+    queryFn: listAddresses
+  });
+
+  useEffect(() => {
+    if (!selectedAddressId && addressesQuery.data?.length) {
+      const defaultAddress = addressesQuery.data.find((item) => item.isDefault) ?? addressesQuery.data[0];
+      setSelectedAddressId(defaultAddress.id);
+    }
+  }, [addressesQuery.data, selectedAddressId]);
 
   const menuQuery = useQuery({
     queryKey: ["menu-items", "delivery"],
@@ -67,6 +80,7 @@ export function DeliveryPage() {
     mutationFn: createDeliveryOrder,
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["delivery-orders"] });
+      await queryClient.invalidateQueries({ queryKey: ["customer-home"] });
       clearCart();
       setAddress(customer?.address ?? "");
       toast.success("Pedido criado");
@@ -103,7 +117,8 @@ export function DeliveryPage() {
 
   function handleCreateOrder() {
     const parsed = createAuthenticatedDeliveryOrderSchema.safeParse({
-      deliveryAddress: address,
+      addressId: selectedAddressId || undefined,
+      deliveryAddress: selectedAddressId ? undefined : address,
       items: items.map((item) => ({ menuItemId: item.menuItemId, quantity: item.quantity }))
     });
 
@@ -123,6 +138,7 @@ export function DeliveryPage() {
 
   const menuItems = menuQuery.data ?? [];
   const orders = ordersQuery.data?.data ?? [];
+  const addresses = addressesQuery.data ?? [];
   const meta = ordersQuery.data?.meta;
 
   return (
@@ -216,14 +232,31 @@ export function DeliveryPage() {
               </div>
             )}
 
-            <FormField id="delivery-address" label="Endereço de entrega">
-              <Input
-                id="delivery-address"
-                onChange={(event) => setAddress(event.target.value)}
-                placeholder="Rua, número, bairro e complemento"
-                value={address}
-              />
-            </FormField>
+            {addresses.length > 0 ? (
+              <FormField id="delivery-address-id" label="Endereço de entrega">
+                <Select onValueChange={setSelectedAddressId} value={selectedAddressId}>
+                  <SelectTrigger id="delivery-address-id">
+                    <SelectValue placeholder="Selecione um endereço" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {addresses.map((item) => (
+                      <SelectItem key={item.id} value={item.id}>
+                        {item.label} - {item.street}, {item.number}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormField>
+            ) : (
+              <FormField id="delivery-address" label="Endereço de entrega">
+                <Input
+                  id="delivery-address"
+                  onChange={(event) => setAddress(event.target.value)}
+                  placeholder="Rua, número, bairro e complemento"
+                  value={address}
+                />
+              </FormField>
+            )}
 
             <div className="flex items-center justify-between border-t pt-4">
               <span className="text-sm text-muted-foreground">Total</span>

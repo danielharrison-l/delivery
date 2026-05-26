@@ -49,6 +49,10 @@ function toItemCreateData(data: MenuItemCreateData): Prisma.MenuItemCreateInput 
     price: new Prisma.Decimal(data.price),
     imageUrl: data.imageUrl || undefined,
     available: data.available ?? true,
+    featured: data.featured ?? false,
+    popular: data.popular ?? false,
+    isNew: data.isNew ?? false,
+    displayOrder: data.displayOrder ?? 0,
     category: {
       connect: { id: data.categoryId }
     }
@@ -62,6 +66,10 @@ function toItemUpdateData(data: MenuItemUpdateData): Prisma.MenuItemUpdateInput 
     price: data.price === undefined ? undefined : new Prisma.Decimal(data.price),
     imageUrl: data.imageUrl || undefined,
     available: data.available,
+    featured: data.featured,
+    popular: data.popular,
+    isNew: data.isNew,
+    displayOrder: data.displayOrder,
     category: data.categoryId ? { connect: { id: data.categoryId } } : undefined
   };
 }

@@ -1,11 +1,13 @@
 import { Injectable } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
+import { customerAddressSelect } from "../addresses/addresses.constants";
 import { getPaginationDatabaseParams } from "../common/pagination/pagination.utils";
 import { PrismaService } from "../prisma/prisma.service";
 import { deliveryMenuItemPriceSelect, deliveryOrderSelect } from "./delivery.constants";
 import type { DeliveryRepositoryContract } from "./delivery.repository.contract";
 import type {
   DeliveryMenuItemPriceRecord,
+  DeliveryAddressRecord,
   DeliveryOrderFindManyQuery,
   DeliveryOrderPaginatedRecords,
   DeliveryOrderRecord
@@ -47,6 +49,13 @@ export class DeliveryRepository implements DeliveryRepositoryContract {
     });
 
     return Boolean(customer);
+  }
+
+  async findCustomerAddressById(id: string): Promise<DeliveryAddressRecord | null> {
+    return this.prisma.customerAddress.findUnique({
+      where: { id },
+      select: customerAddressSelect
+    });
   }
 
   async findAvailableMenuItemsByIds(ids: string[]): Promise<DeliveryMenuItemPriceRecord[]> {

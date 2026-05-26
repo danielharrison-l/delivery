@@ -79,6 +79,7 @@ function ReservationDialog({ open, onOpenChange }) {
     mutationFn: createReservation,
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["reservations"] });
+      await queryClient.invalidateQueries({ queryKey: ["customer-home"] });
       toast.success("Reserva criada");
       setValues(emptyValues);
       setErrors({});
@@ -184,6 +185,7 @@ export function ReservationsPage() {
     mutationFn: ({ id, nextStatus }) => updateReservationStatus(id, { status: nextStatus }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["reservations"] });
+      await queryClient.invalidateQueries({ queryKey: ["customer-home"] });
       toast.success("Status atualizado");
     },
     onError: (error) => toast.error(getApiErrorMessage(error))
@@ -193,6 +195,7 @@ export function ReservationsPage() {
     mutationFn: deleteReservation,
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["reservations"] });
+      await queryClient.invalidateQueries({ queryKey: ["customer-home"] });
       toast.success("Reserva removida");
     },
     onError: (error) => toast.error(getApiErrorMessage(error))

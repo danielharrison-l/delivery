@@ -7,6 +7,7 @@ export const deliveryOrderSelect = {
   status: true,
   totalAmount: true,
   deliveryAddress: true,
+  addressId: true,
   customerId: true,
   createdAt: true,
   updatedAt: true,

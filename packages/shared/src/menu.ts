@@ -29,6 +29,10 @@ export const createMenuItemSchema = z.object({
   price: z.coerce.number().positive(),
   imageUrl: z.string().trim().url().max(255).optional().or(z.literal("")),
   available: z.boolean().optional(),
+  featured: z.boolean().optional(),
+  popular: z.boolean().optional(),
+  isNew: z.boolean().optional(),
+  displayOrder: z.coerce.number().int().min(0).max(9999).optional(),
   categoryId: z.string().uuid()
 });
 
@@ -44,6 +48,10 @@ export const menuItemSchema = z.object({
   price: z.coerce.number(),
   imageUrl: z.string().nullable(),
   available: z.boolean(),
+  featured: z.boolean(),
+  popular: z.boolean(),
+  isNew: z.boolean(),
+  displayOrder: z.number().int(),
   categoryId: z.string().uuid(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),

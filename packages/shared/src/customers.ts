@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { customerAddressSchema } from "./addresses";
 import { paginationMetaSchema, paginationQuerySchema } from "./pagination";
 
 export const createCustomerSchema = z.object({
@@ -22,6 +23,7 @@ export const customerSchema = z.object({
   phone: z.string().nullable(),
   role: customerRoleSchema,
   address: z.string().nullable(),
+  addresses: z.array(customerAddressSchema).optional(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime()
 });

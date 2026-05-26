@@ -10,10 +10,10 @@ import { Separator } from "../ui/separator";
 import { ThemeToggle } from "./ThemeToggle";
 
 const baseNavigationItems = [
-  { to: "/app", label: "Principal", icon: Home },
+  { to: "/app", label: "Início", icon: Home },
   { to: "/cardapio", label: "Cardápio", icon: Utensils },
-  { to: "/delivery", label: "Delivery", icon: ShoppingBag },
   { to: "/reservas", label: "Reservas", icon: ClipboardList },
+  { to: "/delivery", label: "Pedidos", icon: ShoppingBag },
   { to: "/perfil", label: "Perfil", icon: UserRound }
 ];
 
@@ -36,6 +36,32 @@ function NavigationLink({ item, onNavigate }) {
       <Icon className="h-4 w-4" />
       <span>{item.label}</span>
     </NavLink>
+  );
+}
+
+function BottomNavigation({ items }) {
+  return (
+    <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t bg-card/95 px-2 py-2 backdrop-blur lg:hidden">
+      {items.slice(0, 5).map((item) => {
+        const Icon = item.icon;
+
+        return (
+          <NavLink
+            className={({ isActive }) =>
+              [
+                "flex min-w-0 flex-col items-center gap-1 rounded-md px-1 py-2 text-[11px] font-medium transition",
+                isActive ? "text-primary" : "text-muted-foreground"
+              ].join(" ")
+            }
+            key={item.to}
+            to={item.to}
+          >
+            <Icon className="h-4 w-4" />
+            <span className="truncate">{item.label}</span>
+          </NavLink>
+        );
+      })}
+    </nav>
   );
 }
 
@@ -122,11 +148,12 @@ export function AppShell() {
         </div>
       </header>
 
-      <main className="lg:pl-64">
+      <main className="pb-20 lg:pb-0 lg:pl-64">
         <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-5 sm:px-6 lg:gap-8 lg:px-8 lg:py-8">
           <Outlet />
         </div>
       </main>
+      <BottomNavigation items={baseNavigationItems} />
     </div>
   );
 }

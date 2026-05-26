@@ -48,7 +48,7 @@ export class MenuRepository implements MenuRepositoryContract {
     return this.prisma.menuItem.findMany({
       where: this.toItemWhereInput(query),
       select: menuItemSelect,
-      orderBy: [{ category: { name: "asc" } }, { name: "asc" }]
+      orderBy: [{ displayOrder: "asc" }, { category: { name: "asc" } }, { name: "asc" }]
     });
   }
 

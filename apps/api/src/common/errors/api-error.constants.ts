@@ -20,7 +20,10 @@ export const apiErrorCodes = {
   reservationCustomerNotFound: "RESERVATION_CUSTOMER_NOT_FOUND",
   deliveryNotFound: "DELIVERY_NOT_FOUND",
   deliveryCustomerNotFound: "DELIVERY_CUSTOMER_NOT_FOUND",
-  deliveryUnavailableItems: "DELIVERY_UNAVAILABLE_ITEMS"
+  deliveryAddressNotFound: "DELIVERY_ADDRESS_NOT_FOUND",
+  deliveryUnavailableItems: "DELIVERY_UNAVAILABLE_ITEMS",
+  deliveryRestaurantClosed: "DELIVERY_RESTAURANT_CLOSED",
+  addressNotFound: "ADDRESS_NOT_FOUND"
 } as const;
 
 export const publicErrorMessages = {
@@ -47,5 +50,8 @@ export const publicErrorCodeByMessage = new Map<string, string>([
   ["Item do cardápio não encontrado", apiErrorCodes.menuItemNotFound],
   ["Reserva não encontrada", apiErrorCodes.reservationNotFound],
   ["Pedido não encontrado", apiErrorCodes.deliveryNotFound],
-  ["Um ou mais itens estão indisponíveis", apiErrorCodes.deliveryUnavailableItems]
+  ["Endereço não encontrado", apiErrorCodes.deliveryAddressNotFound],
+  ["Endereço não encontrado.", apiErrorCodes.addressNotFound],
+  ["Um ou mais itens estão indisponíveis", apiErrorCodes.deliveryUnavailableItems],
+  ["O delivery está fechado no momento", apiErrorCodes.deliveryRestaurantClosed]
 ]);

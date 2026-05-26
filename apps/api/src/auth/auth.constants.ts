@@ -14,7 +14,12 @@ export const authConstants = {
 export const authRefreshTokenCookieOptions = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production" || process.env.AUTH_REFRESH_TOKEN_COOKIE_SECURE === "true",
-  sameSite: process.env.AUTH_REFRESH_TOKEN_COOKIE_SAME_SITE === "lax" ? "lax" : "none",
+  sameSite:
+    process.env.AUTH_REFRESH_TOKEN_COOKIE_SAME_SITE === "none" ||
+    process.env.NODE_ENV === "production" ||
+    process.env.AUTH_REFRESH_TOKEN_COOKIE_SECURE === "true"
+      ? "none"
+      : "lax",
   path: authConstants.refreshTokenCookiePath,
   maxAge: authConstants.refreshTokenExpiresInSeconds * 1000
 } as const;

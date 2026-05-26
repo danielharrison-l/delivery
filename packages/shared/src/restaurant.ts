@@ -4,6 +4,18 @@ export type RestaurantOperatingHours = {
   closes: string;
 };
 
+export type RestaurantStatus = {
+  isOpen: boolean;
+  deliveryAvailable: boolean;
+  reservationsAvailable: boolean;
+  currentLabel: string;
+  nextChangeLabel: string;
+  deliveryEstimateMinutes: {
+    min: number;
+    max: number;
+  };
+};
+
 type WeekdayShort = "Sun" | "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat";
 
 const weekdayIndexes: Record<WeekdayShort, number> = {
@@ -77,6 +89,63 @@ export function isReservationDateAllowed(value: string | Date, now = new Date())
   return getReservationDateValidationMessage(value, now) === null;
 }
 
+export function getRestaurantStatus(now = new Date()): RestaurantStatus {
+  const parts = getZonedDateTimeParts(now);
+  const fallback = {
+    isOpen: false,
+    deliveryAvailable: false,
+    reservationsAvailable: false,
+    currentLabel: "Status indisponível",
+    nextChangeLabel: "Consulte os horários de atendimento.",
+    deliveryEstimateMinutes: { min: 35, max: 45 }
+  };
+
+  if (!parts) {
+    return fallback;
+  }
+
+  const operatingHours = restaurantOperatingSchedule[parts.dayIndex];
+
+  if (operatingHours) {
+    const opensAt = timeToMinutes(operatingHours.opens);
+    const closesAt = timeToMinutes(operatingHours.closes);
+    const isOpen = parts.minutes >= opensAt && parts.minutes < closesAt;
+
+    if (isOpen) {
+      return {
+        isOpen: true,
+        deliveryAvailable: true,
+        reservationsAvailable: true,
+        currentLabel: `Aberto até ${operatingHours.closes}`,
+        nextChangeLabel: `Pedidos e reservas disponíveis até ${operatingHours.closes}.`,
+        deliveryEstimateMinutes: { min: 35, max: 45 }
+      };
+    }
+
+    if (parts.minutes < opensAt) {
+      return {
+        isOpen: false,
+        deliveryAvailable: false,
+        reservationsAvailable: false,
+        currentLabel: "Fechado agora",
+        nextChangeLabel: `Reabre hoje às ${operatingHours.opens}.`,
+        deliveryEstimateMinutes: { min: 35, max: 45 }
+      };
+    }
+  }
+
+  const nextOpening = getNextOpening(parts.dayIndex);
+
+  return {
+    isOpen: false,
+    deliveryAvailable: false,
+    reservationsAvailable: false,
+    currentLabel: "Fechado agora",
+    nextChangeLabel: nextOpening ? `Reabre ${nextOpening.day.toLowerCase()} às ${nextOpening.opens}.` : "Consulte os horários de atendimento.",
+    deliveryEstimateMinutes: { min: 35, max: 45 }
+  };
+}
+
 function getZonedDateTimeParts(date: Date): { dayIndex: number; minutes: number } | null {
   const parts = dateTimeFormatter.formatToParts(date);
   const weekday = getPartValue(parts, "weekday");
@@ -104,4 +173,17 @@ function isWeekdayShort(value: string): value is WeekdayShort {
 function timeToMinutes(value: string): number {
   const [hour = "0", minute = "0"] = value.split(":");
   return Number(hour) * 60 + Number(minute);
+}
+
+function getNextOpening(dayIndex: number): RestaurantOperatingHours | null {
+  for (let offset = 1; offset <= 7; offset += 1) {
+    const nextIndex = (dayIndex + offset) % restaurantOperatingSchedule.length;
+    const operatingHours = restaurantOperatingSchedule[nextIndex];
+
+    if (operatingHours) {
+      return operatingHours;
+    }
+  }
+
+  return null;
 }
