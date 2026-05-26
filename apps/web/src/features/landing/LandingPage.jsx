@@ -1,5 +1,6 @@
 import { formatRestaurantOperatingSchedule } from "@repo/shared";
 import { AtSign, CalendarCheck, CalendarDays, ChefHat, Clock3, Globe2, Share2, ShoppingBag, Star, Truck, Utensils } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "../../components/ui/button";
 import { useAuthStore } from "../auth/store";
@@ -83,9 +84,96 @@ const footerLinks = [
   }
 ];
 
+const navItems = [
+  {
+    id: "cardapio",
+    label: "CARDÁPIO",
+    targetId: "cardapio"
+  },
+  {
+    id: "reservas",
+    label: "RESERVAS",
+    targetId: "reservas"
+  },
+  {
+    id: "delivery",
+    label: "DELIVERY",
+    targetId: "reservas"
+  },
+  {
+    id: "experiencia",
+    label: "EXPERIÊNCIA",
+    targetId: "experiencia"
+  }
+];
+
+const activeSectionOrder = ["experiencia", "reservas", "delivery", "cardapio"];
+
+function getNavLinkClass(isActive) {
+  return [
+    "border-b-2 pb-1 text-sm font-bold uppercase tracking-[0.05em] transition-colors",
+    isActive
+      ? "border-[#ffb68d] text-[#ffb68d]"
+      : "border-transparent text-[#c6c6cc] hover:border-[#ffb68d]/60 hover:text-[#ffb68d]"
+  ].join(" ");
+}
+
 export function LandingPage() {
   const customer = useAuthStore((state) => state.customer);
   const accountLink = customer ? "/app" : "/login";
+  const [activeSection, setActiveSection] = useState("");
+  const suppressScrollActiveUntilRef = useRef(0);
+
+  useEffect(() => {
+    function updateActiveSection() {
+      if (Date.now() < suppressScrollActiveUntilRef.current) {
+        return;
+      }
+
+      const marker = window.scrollY + 140;
+
+      if (window.scrollY < window.innerHeight * 0.45) {
+        setActiveSection("");
+        return;
+      }
+
+      const currentSection = activeSectionOrder.reduce((current, sectionId) => {
+        const element = document.getElementById(sectionId);
+
+        if (!element) {
+          return current;
+        }
+
+        const top = element.getBoundingClientRect().top + window.scrollY;
+        return top <= marker ? sectionId : current;
+      }, "");
+
+      setActiveSection(currentSection);
+    }
+
+    updateActiveSection();
+    window.addEventListener("scroll", updateActiveSection, { passive: true });
+    window.addEventListener("resize", updateActiveSection);
+
+    return () => {
+      window.removeEventListener("scroll", updateActiveSection);
+      window.removeEventListener("resize", updateActiveSection);
+    };
+  }, []);
+
+  function handleNavClick(event, item) {
+    event.preventDefault();
+    const target = document.getElementById(item.targetId);
+
+    if (!target) {
+      return;
+    }
+
+    setActiveSection(item.id);
+    suppressScrollActiveUntilRef.current = Date.now() + 1200;
+    window.history.pushState(null, "", `#${item.id}`);
+    target.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 
   return (
     <main className="min-h-screen w-full overflow-x-hidden bg-[#0a1421] font-[Manrope] text-[#dae3f5] selection:bg-[#ffb68d] selection:text-[#532200]">
@@ -99,18 +187,11 @@ export function LandingPage() {
           </Link>
 
           <div className="hidden items-center gap-8 md:flex">
-            <a className="border-b-2 border-[#ffb68d] pb-1 text-sm font-bold uppercase tracking-[0.05em] text-[#ffb68d]" href="#cardapio">
-              Cardápio
-            </a>
-            <a className="text-sm font-semibold uppercase tracking-[0.05em] text-[#c6c6cc] transition-colors hover:text-[#ffb68d]" href="#reservas">
-              Reservas
-            </a>
-            <a className="text-sm font-semibold uppercase tracking-[0.05em] text-[#c6c6cc] transition-colors hover:text-[#ffb68d]" href="#delivery">
-              Delivery
-            </a>
-            <a className="text-sm font-semibold uppercase tracking-[0.05em] text-[#c6c6cc] transition-colors hover:text-[#ffb68d]" href="#experiencia">
-              Experiência
-            </a>
+            {navItems.map((item) => (
+              <a className={getNavLinkClass(activeSection === item.id)} href={`#${item.id}`} key={item.id} onClick={(event) => handleNavClick(event, item)}>
+                {item.label}
+              </a>
+            ))}
           </div>
 
           <div className="flex shrink-0 items-center gap-3">
@@ -178,7 +259,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      <section className="mx-auto w-full max-w-7xl overflow-hidden px-5 py-20 md:px-16" id="experiencia">
+      <section className="scroll-mt-24 mx-auto w-full max-w-7xl overflow-hidden px-5 py-20 md:scroll-mt-28 md:px-16" id="experiencia">
         <div className="grid min-w-0 grid-cols-1 items-center gap-8 lg:grid-cols-12">
           <div className="relative h-[500px] overflow-hidden rounded-xl shadow-2xl lg:col-span-7">
             <img alt="Prato autoral do Terraço Bistrô com apresentação sofisticada" className="h-full w-full object-cover" src={landingImages.plate} />
@@ -192,7 +273,7 @@ export function LandingPage() {
             </div>
           </div>
 
-          <div className="relative flex h-full flex-col justify-center overflow-hidden rounded-xl bg-[#9a4602] p-7 text-[#ffceb5] md:p-12 lg:col-span-5" id="reservas">
+          <div className="scroll-mt-24 relative flex h-full flex-col justify-center overflow-hidden rounded-xl bg-[#9a4602] p-7 text-[#ffceb5] md:scroll-mt-28 md:p-12 lg:col-span-5" id="reservas">
             <div className="absolute right-0 top-0 h-32 w-32 rounded-full bg-[#331200]/10 blur-3xl md:-right-12 md:-top-12 md:h-48 md:w-48" />
             <span className="mb-4 text-sm font-semibold uppercase tracking-[0.18em] text-[#763300]">Atendimento online</span>
             <h2 className="mb-6 font-['Libre_Caslon_Text'] text-3xl font-bold leading-tight text-[#ffceb5] md:text-4xl">
@@ -201,7 +282,7 @@ export function LandingPage() {
             <p className="mb-8 break-words text-base leading-7 text-[#ffd9c6]/90">
               Da mesa ao delivery, o Terraço Bistrô reúne o que você precisa para ser atendido sem espera e com conforto digital.
             </p>
-            <div className="space-y-6 border-t border-[#ffceb5]/15 pt-6" id="delivery">
+            <div className="scroll-mt-28 space-y-6 border-t border-[#ffceb5]/15 pt-6" id="delivery">
               {serviceItems.map((item) => {
                 const Icon = item.icon;
                 return (
@@ -221,7 +302,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      <section className="bg-[#131c29] py-16 md:py-20" id="cardapio">
+      <section className="scroll-mt-24 bg-[#131c29] py-16 md:scroll-mt-28 md:py-20" id="cardapio">
         <div className="mx-auto mb-12 max-w-7xl px-5 text-center md:mb-16 md:px-16">
           <span className="mb-4 block text-sm font-semibold uppercase tracking-[0.18em] text-[#ffb68d]">Destaques</span>
           <h2 className="font-['Libre_Caslon_Text'] text-3xl font-bold text-[#dae3f5] md:text-4xl">Sugestões do chef</h2>
