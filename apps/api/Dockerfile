@@ -17,4 +17,4 @@ RUN pnpm --filter @repo/api build
 
 EXPOSE 3333
 
-CMD ["sh", "-c", "pnpm --filter @repo/api db:deploy && pnpm --filter @repo/api start"]
+CMD ["sh", "-c", "pnpm --filter @repo/api db:deploy && pnpm --filter @repo/api db:seed && pnpm --filter @repo/api start"]

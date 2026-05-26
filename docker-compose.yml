@@ -7,7 +7,7 @@ services:
       POSTGRES_PASSWORD: app
       POSTGRES_DB: app
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -15,6 +15,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+    restart: unless-stopped
 
   api:
     build:
@@ -24,28 +25,37 @@ services:
     environment:
       DATABASE_URL: postgresql://app:app@db:5432/app?schema=public
       PORT: 3333
-      CORS_ORIGIN: http://localhost:5173
+      CORS_ORIGIN: http://localhost:${WEB_PORT:-5173}
       AUTH_ACCESS_TOKEN_SECRET: change-me-access-token-secret
       AUTH_ACCESS_TOKEN_EXPIRES_IN_SECONDS: 900
       AUTH_REFRESH_TOKEN_EXPIRES_IN_SECONDS: 604800
       AUTH_REFRESH_TOKEN_COOKIE_SECURE: false
     ports:
-      - "3333:3333"
+      - "${API_PORT:-3333}:3333"
     depends_on:
       db:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3333/api/health >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    restart: unless-stopped
 
   web:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
       args:
-        VITE_API_URL: http://localhost:3333/api
+        VITE_API_URL: /api
     container_name: fullstack_web
     ports:
-      - "5173:80"
+      - "${WEB_PORT:-5173}:80"
     depends_on:
-      - api
+      api:
+        condition: service_healthy
+    restart: unless-stopped
 
 volumes:
   postgres_data:

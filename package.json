@@ -13,7 +13,8 @@
     "db:deploy": "pnpm --filter @repo/api db:deploy",
     "db:seed": "pnpm --filter @repo/api db:seed",
     "db:studio": "pnpm --filter @repo/api db:studio",
-    "docker:up": "docker compose up --build"
+    "docker:up": "docker compose up --build",
+    "docker:down": "docker compose down"
   },
   "devDependencies": {
     "prettier": "^3.8.3",
