@@ -17,13 +17,19 @@ function parseCorsOrigins(value: string | undefined) {
   );
 }
 
+function isAllowedCorsOrigin(origin: string, allowedOrigins: Set<string>) {
+  const normalizedOrigin = normalizeOrigin(origin);
+
+  return allowedOrigins.has(normalizedOrigin) || normalizedOrigin.endsWith(".vercel.app");
+}
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const allowedOrigins = parseCorsOrigins(process.env.CORS_ORIGIN);
 
   app.enableCors({
     origin: (origin: string | undefined, callback: CorsCallback) => {
-      if (!origin || allowedOrigins.size === 0 || allowedOrigins.has(normalizeOrigin(origin))) {
+      if (!origin || allowedOrigins.size === 0 || isAllowedCorsOrigin(origin, allowedOrigins)) {
         callback(null, true);
         return;
       }
