@@ -11,6 +11,8 @@ function Delivery() {
   const [qtdSacola, setQtdSacola] = useState(2)
   const { itens, adicionarItem, removerItem, subtotal, frete, total, modalAberto, setModalAberto } = useCarrinho()
   const navigate = useNavigate()
+  const [pagamentoAberto, setPagamentoAberto] = useState(false)
+  const [formaPagamento, setFormaPagamento] = useState('cartao')
 
   const categorias = ['ENTRADAS', 'PRATOS PRINCIPAIS', 'BEBIDAS', 'SOBREMESAS']
 
@@ -96,7 +98,7 @@ function Delivery() {
       </div>
 
       <button 
-        onClick={() => { setModalAberto(false); navigate('/confirmacao') }}
+        onClick={() => { setModalAberto(false); setPagamentoAberto(true) }}
         className="w-full bg-gold text-white py-4 rounded-full text-xs font-semibold tracking-widest uppercase mb-3"
       >
         Finalizar Pedido
@@ -107,6 +109,104 @@ function Delivery() {
         className="w-full border border-stone-300 text-stone-500 py-4 rounded-full text-xs font-semibold tracking-widest uppercase"
       >
         Continuar Comprando
+      </button>
+    </div>
+  </div>
+)}
+
+{pagamentoAberto && (
+  <div className="fixed inset-0 bg-black/50 z-50 flex items-end">
+    <div className="bg-white w-full rounded-t-3xl p-6 max-h-[90vh] overflow-y-auto">
+      
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="font-playfair text-xl font-bold text-stone-800">Pagamento</h2>
+        <button onClick={() => setPagamentoAberto(false)} className="text-stone-400">
+          <span className="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <div className="bg-stone-50 rounded-xl p-4 mb-6 flex justify-between items-center">
+        <span className="text-stone-500 text-sm">Total a pagar</span>
+        <span className="text-gold font-bold text-lg">R$ {total},00</span>
+      </div>
+
+      <div className="grid grid-cols-3 gap-3 mb-6">
+        <button
+          onClick={() => setFormaPagamento('cartao')}
+          className={`flex flex-col items-center p-3 rounded-xl border-2 transition-all ${formaPagamento === 'cartao' ? 'border-gold text-gold' : 'border-stone-200 text-stone-400'}`}
+        >
+          <span className="material-symbols-outlined mb-1">credit_card</span>
+          <span className="text-xs font-semibold">Cartão</span>
+        </button>
+        <button
+          onClick={() => setFormaPagamento('pix')}
+          className={`flex flex-col items-center p-3 rounded-xl border-2 transition-all ${formaPagamento === 'pix' ? 'border-gold text-gold' : 'border-stone-200 text-stone-400'}`}
+        >
+          <span className="material-symbols-outlined mb-1">qr_code</span>
+          <span className="text-xs font-semibold">Pix</span>
+        </button>
+        <button
+          onClick={() => setFormaPagamento('dinheiro')}
+          className={`flex flex-col items-center p-3 rounded-xl border-2 transition-all ${formaPagamento === 'dinheiro' ? 'border-gold text-gold' : 'border-stone-200 text-stone-400'}`}
+        >
+          <span className="material-symbols-outlined mb-1">payments</span>
+          <span className="text-xs font-semibold">Dinheiro</span>
+        </button>
+      </div>
+
+      {formaPagamento === 'cartao' && (
+        <div className="space-y-4 mb-6">
+          <div>
+            <label className="text-xs font-semibold tracking-widest uppercase text-stone-400 mb-1 block">Número do Cartão</label>
+            <input type="text" placeholder="0000 0000 0000 0000" maxLength="19" className="w-full border border-stone-200 rounded-xl px-4 py-3 text-stone-800 text-sm"/>
+          </div>
+          <div>
+            <label className="text-xs font-semibold tracking-widest uppercase text-stone-400 mb-1 block">Nome no Cartão</label>
+            <input type="text" placeholder="NOME SOBRENOME" className="w-full border border-stone-200 rounded-xl px-4 py-3 text-stone-800 text-sm"/>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-xs font-semibold tracking-widest uppercase text-stone-400 mb-1 block">Validade</label>
+              <input type="text" placeholder="MM/AA" maxLength="5" className="w-full border border-stone-200 rounded-xl px-4 py-3 text-stone-800 text-sm"/>
+            </div>
+            <div>
+              <label className="text-xs font-semibold tracking-widest uppercase text-stone-400 mb-1 block">CVV</label>
+              <input type="text" placeholder="000" maxLength="3" className="w-full border border-stone-200 rounded-xl px-4 py-3 text-stone-800 text-sm"/>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {formaPagamento === 'pix' && (
+        <div className="flex flex-col items-center mb-6">
+          <div className="w-48 h-48 bg-stone-100 rounded-xl flex items-center justify-center mb-4">
+            <span className="material-symbols-outlined text-stone-400" style={{fontSize: '100px'}}>qr_code_2</span>
+          </div>
+          <p className="text-stone-500 text-sm text-center">Escaneie o QR code com o app do seu banco</p>
+          <p className="text-xs text-stone-400 mt-2">Chave Pix: lumiere@restaurante.com</p>
+        </div>
+      )}
+
+      {formaPagamento === 'dinheiro' && (
+        <div className="bg-stone-50 rounded-xl p-4 mb-6 text-center">
+          <span className="material-symbols-outlined text-gold text-4xl mb-2 block">payments</span>
+          <p className="text-stone-600 text-sm">Pague <strong>R$ {total},00</strong> na entrega</p>
+          <p className="text-stone-400 text-xs mt-1">Tenha o valor exato se possível</p>
+        </div>
+      )}
+
+      <button
+        onClick={() => { setPagamentoAberto(false); navigate('/confirmacao') }}
+        className="w-full bg-gold text-white py-4 rounded-full text-xs font-semibold tracking-widest uppercase mb-3"
+      >
+        {formaPagamento === 'pix' ? 'Já fiz o pagamento' : formaPagamento === 'dinheiro' ? 'Confirmar Pedido' : `Pagar R$ ${total},00`}
+      </button>
+
+      <button
+        onClick={() => { setPagamentoAberto(false); setModalAberto(true) }}
+        className="w-full border border-stone-300 text-stone-500 py-4 rounded-full text-xs font-semibold tracking-widest uppercase"
+      >
+        Voltar ao Carrinho
       </button>
 
     </div>
