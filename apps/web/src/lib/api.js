@@ -16,12 +16,59 @@ import { useAuthStore } from "../features/auth/store";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3333/api";
 
+const GENERIC_ERROR_MESSAGE = "Não foi possível completar a solicitação agora. Tente novamente em instantes.";
+const CONNECTION_ERROR_MESSAGE = "Não foi possível conectar ao servidor. Tente novamente em instantes.";
+
+const errorMessagesByCode = {
+  VALIDATION_ERROR: "Confira os dados informados.",
+  BAD_REQUEST: "Não foi possível processar a solicitação.",
+  UNAUTHORIZED: "Faça login para continuar.",
+  FORBIDDEN: "Você não tem permissão para realizar esta ação.",
+  NOT_FOUND: "Registro não encontrado.",
+  CONFLICT: "Já existe um registro com estes dados.",
+  INTERNAL_SERVER_ERROR: GENERIC_ERROR_MESSAGE,
+  AUTH_INVALID_CREDENTIALS: "E-mail ou senha inválidos.",
+  AUTH_INVALID_SESSION: "Sua sessão expirou. Faça login novamente.",
+  AUTH_MISSING_ACCESS_TOKEN: "Faça login para continuar.",
+  AUTH_CUSTOMER_NOT_FOUND: "Não foi possível localizar sua conta.",
+  AUTH_ADMIN_ONLY: "Você não tem permissão para acessar esta área.",
+  CUSTOMER_NOT_FOUND: "Cliente não encontrado.",
+  CUSTOMER_EMAIL_ALREADY_EXISTS: "Já existe um cliente com este e-mail.",
+  MENU_CATEGORY_NOT_FOUND: "Categoria não encontrada.",
+  MENU_CATEGORY_ALREADY_EXISTS: "Já existe uma categoria com este nome.",
+  MENU_ITEM_NOT_FOUND: "Item do cardápio não encontrado.",
+  RESERVATION_NOT_FOUND: "Reserva não encontrada.",
+  RESERVATION_CUSTOMER_NOT_FOUND: "Cliente não encontrado.",
+  DELIVERY_NOT_FOUND: "Pedido não encontrado.",
+  DELIVERY_CUSTOMER_NOT_FOUND: "Cliente não encontrado.",
+  DELIVERY_UNAVAILABLE_ITEMS: "Um ou mais itens estão indisponíveis."
+};
+
+const fallbackMessagesByStatus = {
+  400: "Confira os dados informados.",
+  401: "Faça login para continuar.",
+  403: "Você não tem permissão para realizar esta ação.",
+  404: "Registro não encontrado.",
+  409: "Já existe um registro com estes dados."
+};
+
+const legacyMessages = {
+  "Invalid email or password.": "E-mail ou senha inválidos.",
+  "Too small: expected string to have >=1 characters": "Preencha este campo.",
+  "Invalid input: expected string, received undefined": "Preencha todos os campos obrigatórios.",
+  "Validation failed": "Confira os dados informados."
+};
+
 function getAccessToken() {
   return useAuthStore.getState().accessToken;
 }
 
 async function parseError(response) {
-  const error = await response.json().catch(() => ({ message: response.statusText }));
+  if (response.status >= 500) {
+    return GENERIC_ERROR_MESSAGE;
+  }
+
+  const error = await response.json().catch(() => ({}));
   const fieldErrors = error.errors?.fieldErrors;
 
   if (fieldErrors && typeof fieldErrors === "object") {
@@ -32,31 +79,32 @@ async function parseError(response) {
     }
   }
 
-  const message = Array.isArray(error.message) ? error.message.join(", ") : error.message;
-  return translateError(message || "Não foi possível completar a solicitação.");
-}
+  if (typeof error.code === "string" && errorMessagesByCode[error.code]) {
+    return errorMessagesByCode[error.code];
+  }
 
-function translateError(message) {
-  const translations = {
-    "Invalid email or password.": "E-mail ou senha inválidos.",
-    "Too small: expected string to have >=1 characters": "Preencha este campo.",
-    "Invalid input: expected string, received undefined": "Preencha todos os campos obrigatórios.",
-    "Validation failed": "Confira os dados informados."
-  };
+  const message = Array.isArray(error.message) ? error.message.find(Boolean) : error.message;
 
-  return translations[message] ?? message;
+  if (typeof message === "string" && legacyMessages[message]) {
+    return legacyMessages[message];
+  }
+
+  return fallbackMessagesByStatus[response.status] ?? GENERIC_ERROR_MESSAGE;
 }
 
 async function request(path, { schema, method = "GET", body, auth = false, retry = true } = {}) {
   const accessToken = getAccessToken();
+  const headers = {
+    ...(body ? { "Content-Type": "application/json" } : {}),
+    ...(auth && accessToken ? { Authorization: `Bearer ${accessToken}` } : {})
+  };
   const response = await fetch(`${API_URL}${path}`, {
     method,
     credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      ...(auth && accessToken ? { Authorization: `Bearer ${accessToken}` } : {})
-    },
+    headers,
     body: body ? JSON.stringify(body) : undefined
+  }).catch(() => {
+    throw new Error(CONNECTION_ERROR_MESSAGE);
   });
 
   if (response.status === 401 && auth && retry) {

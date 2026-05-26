@@ -1,5 +1,6 @@
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
+import { ApiExceptionFilter } from "./common/errors/api-exception.filter";
 import { setupOpenApi } from "./docs/openapi";
 
 type CorsCallback = (error: Error | null, allow?: boolean) => void;
@@ -39,6 +40,7 @@ async function bootstrap() {
     credentials: true
   });
   app.setGlobalPrefix("api");
+  app.useGlobalFilters(new ApiExceptionFilter());
   setupOpenApi(app);
 
   const port = Number(process.env.PORT ?? 3333);

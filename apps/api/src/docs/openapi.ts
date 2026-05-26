@@ -14,13 +14,23 @@ interface JsonResponse {
 const errorResponseSchema = {
   type: "object",
   properties: {
-    message: {
-      oneOf: [{ type: "string" }, { type: "array", items: { type: "string" } }]
-    },
-    error: { type: "string" },
-    statusCode: { type: "number" }
+    code: { type: "string", example: "VALIDATION_ERROR" },
+    message: { type: "string", example: "Confira os dados informados." },
+    statusCode: { type: "number", example: 400 },
+    errors: {
+      type: "object",
+      properties: {
+        fieldErrors: {
+          type: "object",
+          additionalProperties: {
+            type: "array",
+            items: { type: "string" }
+          }
+        }
+      }
+    }
   },
-  required: ["message", "statusCode"]
+  required: ["code", "message", "statusCode"]
 } satisfies SchemaObject;
 
 const paginationMetaSchema = {
