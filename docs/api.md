@@ -68,8 +68,7 @@ Body:
   "name": "Ana Silva",
   "email": "ana@example.com",
   "password": "12345678",
-  "phone": "11999998888",
-  "address": "Rua Central, 100"
+  "phone": "11999998888"
 }
 ```
 
@@ -115,6 +114,23 @@ Nao recebe body. O refresh token vem do cookie `HttpOnly` e o backend limpa o co
 
 Rota privada. Retorna o cliente autenticado.
 
+### `PATCH /auth/me`
+
+Rota privada. Atualiza os dados do perfil do cliente autenticado. Use essa rota para salvar telefone e endereço padrão de delivery.
+
+Body:
+
+```json
+{
+  "name": "Ana Silva",
+  "email": "ana@example.com",
+  "phone": "11999998888",
+  "address": "Rua Central, 100"
+}
+```
+
+Campos obrigatorios: `name`, `email`.
+
 ## Health
 
 ### `GET /health`
@@ -123,7 +139,7 @@ Retorna o status da API.
 
 ## Customers
 
-Todas as rotas de clientes sao privadas. Cadastro publico deve usar `POST /auth/register`.
+Todas as rotas de clientes são privadas e exigem usuário `ADMIN`. Cadastro público deve usar `POST /auth/register`.
 
 ### `GET /customers`
 
@@ -179,7 +195,7 @@ Remove um cliente.
 
 ## Menu Categories
 
-Listagem e busca sao publicas. Criar, atualizar e remover sao rotas privadas.
+Listagem e busca são públicas. Criar, atualizar e remover exigem usuário `ADMIN`.
 
 ### `GET /menu/categories`
 
@@ -214,7 +230,7 @@ Remove uma categoria.
 
 ## Menu Items
 
-Listagem e busca sao publicas. Criar, atualizar e remover sao rotas privadas.
+Listagem e busca são públicas. Criar, atualizar e remover exigem usuário `ADMIN`.
 
 ### `GET /menu/items`
 
@@ -261,7 +277,7 @@ Remove um item.
 
 ## Reservations
 
-Todas as rotas de reservas sao privadas. O backend usa o cliente autenticado pelo token.
+Todas as rotas de reservas são privadas. Clientes comuns acessam apenas as próprias reservas. Usuários `ADMIN` listam todas e podem alterar status.
 
 Status aceitos:
 
@@ -290,6 +306,15 @@ Busca uma reserva por `id`.
 
 Cria uma reserva.
 
+Regras de horário:
+
+- Não aceita data e horário no passado.
+- Segunda-feira fechado.
+- Terça a quinta: `18:00` às `22:30`.
+- Sexta-feira: `18:00` às `23:30`.
+- Sábado: `12:00` às `23:30`.
+- Domingo: `12:00` às `16:00`.
+
 Body:
 
 ```json
@@ -304,7 +329,7 @@ Campos obrigatorios: `reservationDate`, `peopleCount`.
 
 ### `PATCH /reservations/:id/status`
 
-Atualiza o status da reserva.
+Atualiza o status da reserva. Exige usuário `ADMIN`.
 
 Body:
 
@@ -320,7 +345,7 @@ Remove uma reserva.
 
 ## Delivery Orders
 
-Todas as rotas de delivery sao privadas. O backend usa o cliente autenticado pelo token.
+Todas as rotas de delivery são privadas. Clientes comuns acessam apenas os próprios pedidos. Usuários `ADMIN` listam todos e podem alterar status ou remover pedidos.
 
 Status aceitos:
 
@@ -367,7 +392,7 @@ Campos obrigatorios: `deliveryAddress`, `items`.
 
 ### `PATCH /delivery/orders/:id/status`
 
-Atualiza o status do pedido.
+Atualiza o status do pedido. Exige usuário `ADMIN`.
 
 Body:
 
@@ -379,4 +404,4 @@ Body:
 
 ### `DELETE /delivery/orders/:id`
 
-Remove um pedido.
+Remove um pedido. Exige usuário `ADMIN`.
