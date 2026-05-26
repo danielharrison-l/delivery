@@ -6,9 +6,6 @@ function TopNav() {
   return (
     <header className="fixed top-0 w-full z-50 bg-white/90 backdrop-blur-md shadow-sm">
       <div className="flex justify-between items-center px-5 h-16 max-w-5xl mx-auto">
-        <button className="text-gold">
-          <span className="material-symbols-outlined">menu</span>
-        </button>
         <h1 className="text-gold tracking-widest uppercase font-playfair text-xl">
           Lumière
         </h1>

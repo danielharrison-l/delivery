@@ -63,7 +63,7 @@ function confirmar() {
 
           <div className="grid grid-cols-2 gap-6 mb-6">
             <div>
-              <label className="text-xs font-semibold tracking-widest uppercase text-stone-500">Guests</label>
+              <label className="text-xs font-semibold tracking-widest uppercase text-stone-500">Mesa Para:</label>
               <div className="relative mt-2">
                 <select className="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-stone-800 appearance-none">
                   <option>1 Pessoa</option>

@@ -49,7 +49,6 @@ function Confirmacao() {
       >
         Voltar ao Início
       </button>
-
     </main>
   )
 }
