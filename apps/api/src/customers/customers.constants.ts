@@ -7,6 +7,7 @@ export const customerSelect = {
   name: true,
   email: true,
   phone: true,
+  role: true,
   address: true,
   createdAt: true,
   updatedAt: true

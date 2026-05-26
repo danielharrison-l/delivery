@@ -2,13 +2,15 @@ import type {
   AuthenticatedCustomerResponse,
   AuthSessionResponse,
   LoginInput,
-  RegisterInput
+  RegisterInput,
+  UpdateProfileInput
 } from "@repo/shared";
 import type { Prisma } from "@prisma/client";
 import type { authCustomerSelect, authCustomerWithPasswordSelect, refreshTokenSelect } from "./auth.constants";
 
 export type AuthRegisterData = RegisterInput;
 export type AuthLoginData = LoginInput;
+export type AuthProfileUpdateData = UpdateProfileInput;
 export type AuthenticatedCustomer = AuthenticatedCustomerResponse;
 export type AuthSessionDto = AuthSessionResponse;
 export type AuthSessionWithRefreshToken = AuthSessionDto & {

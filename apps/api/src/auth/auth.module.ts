@@ -1,5 +1,6 @@
 import { Global, Module } from "@nestjs/common";
 import { PrismaModule } from "../prisma/prisma.module";
+import { AdminGuard } from "./admin.guard";
 import { AuthController } from "./auth.controller";
 import { AuthGuard } from "./auth.guard";
 import { AuthPasswordService } from "./auth-password.service";
@@ -17,11 +18,12 @@ import { AUTH_REPOSITORY } from "./auth.tokens";
     AuthPasswordService,
     AuthTokenService,
     AuthGuard,
+    AdminGuard,
     {
       provide: AUTH_REPOSITORY,
       useClass: AuthRepository
     }
   ],
-  exports: [AuthService, AuthGuard, AuthTokenService]
+  exports: [AuthService, AuthGuard, AdminGuard, AuthTokenService]
 })
 export class AuthModule {}

@@ -1,4 +1,4 @@
 export const reservationsErrors = {
-  notFound: "Reservation not found",
-  customerNotFound: "Customer not found"
+  notFound: "Reserva não encontrada",
+  customerNotFound: "Cliente não encontrado"
 } as const;

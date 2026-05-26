@@ -8,11 +8,12 @@ import {
   type UpdateCustomerInput
 } from "@repo/shared";
 import { ZodValidationPipe } from "../common/pipes/zod-validation.pipe";
+import { AdminGuard } from "../auth/admin.guard";
 import { AuthGuard } from "../auth/auth.guard";
 import { CustomersService } from "./customers.service";
 
 @Controller("customers")
-@UseGuards(AuthGuard)
+@UseGuards(AuthGuard, AdminGuard)
 export class CustomersController {
   constructor(private readonly customersService: CustomersService) {}
 

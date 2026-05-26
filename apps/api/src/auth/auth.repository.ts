@@ -35,6 +35,14 @@ export class AuthRepository implements AuthRepositoryContract {
     });
   }
 
+  async updateCustomer(id: string, data: Prisma.CustomerUpdateInput): Promise<AuthCustomerRecord> {
+    return this.prisma.customer.update({
+      where: { id },
+      data,
+      select: authCustomerSelect
+    });
+  }
+
   async createRefreshToken(data: RefreshTokenCreateData): Promise<RefreshTokenRecord> {
     return this.prisma.refreshToken.create({
       data: {

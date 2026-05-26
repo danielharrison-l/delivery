@@ -10,6 +10,7 @@ import {
 import { AuthGuard } from "../auth/auth.guard";
 import { CurrentUser } from "../auth/current-user.decorator";
 import type { AuthenticatedCustomer } from "../auth/auth.types";
+import { AdminGuard } from "../auth/admin.guard";
 import { ZodValidationPipe } from "../common/pipes/zod-validation.pipe";
 import { ReservationsService } from "./reservations.service";
 
@@ -23,11 +24,15 @@ export class ReservationsController {
     @CurrentUser() customer: AuthenticatedCustomer,
     @Query(new ZodValidationPipe(reservationListQuerySchema)) query: ReservationListQuery
   ) {
-    return this.reservationsService.findMany({ ...query, customerId: customer.id });
+    return this.reservationsService.findMany(customer.role === "ADMIN" ? query : { ...query, customerId: customer.id });
   }
 
   @Get(":id")
   findOne(@CurrentUser() customer: AuthenticatedCustomer, @Param("id", new ParseUUIDPipe()) id: string) {
+    if (customer.role === "ADMIN") {
+      return this.reservationsService.findOne(id);
+    }
+
     return this.reservationsService.findOneForCustomer(id, customer.id);
   }
 
@@ -40,17 +45,21 @@ export class ReservationsController {
   }
 
   @Patch(":id/status")
+  @UseGuards(AdminGuard)
   updateStatus(
-    @CurrentUser() customer: AuthenticatedCustomer,
     @Param("id", new ParseUUIDPipe()) id: string,
     @Body(new ZodValidationPipe(updateReservationStatusSchema)) data: UpdateReservationStatusInput
   ) {
-    return this.reservationsService.updateStatusForCustomer(id, customer.id, data);
+    return this.reservationsService.updateStatus(id, data);
   }
 
   @Delete(":id")
   @HttpCode(HttpStatus.NO_CONTENT)
   remove(@CurrentUser() customer: AuthenticatedCustomer, @Param("id", new ParseUUIDPipe()) id: string) {
+    if (customer.role === "ADMIN") {
+      return this.reservationsService.remove(id);
+    }
+
     return this.reservationsService.removeForCustomer(id, customer.id);
   }
 }

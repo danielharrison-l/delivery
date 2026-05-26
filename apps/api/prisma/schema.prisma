@@ -13,6 +13,7 @@ model Customer {
   email        String   @unique
   phone        String?
   passwordHash String?
+  role         CustomerRole @default(CUSTOMER)
   address      String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -111,4 +112,9 @@ enum DeliveryOrderStatus {
   OUT_FOR_DELIVERY
   DELIVERED
   CANCELLED
+}
+
+enum CustomerRole {
+  CUSTOMER
+  ADMIN
 }

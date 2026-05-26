@@ -41,11 +41,12 @@ const customerSchema = {
     name: { type: "string", example: "Ana Silva" },
     email: { type: "string", format: "email", example: "ana@example.com" },
     phone: { type: "string", nullable: true, example: "11999998888" },
+    role: { type: "string", enum: ["CUSTOMER", "ADMIN"], example: "CUSTOMER" },
     address: { type: "string", nullable: true, example: "Rua Central, 100" },
     createdAt: { type: "string", format: "date-time" },
     updatedAt: { type: "string", format: "date-time" }
   },
-  required: ["id", "name", "email", "phone", "address", "createdAt", "updatedAt"]
+  required: ["id", "name", "email", "phone", "role", "address", "createdAt", "updatedAt"]
 } satisfies SchemaObject;
 
 const menuCategorySchema = {
@@ -279,6 +280,17 @@ export const openApiDocument: OpenAPIObject = {
         responses: {
           "200": response("Authenticated customer", "#/components/schemas/Customer"),
           "401": response("Invalid access token", "#/components/schemas/ErrorResponse")
+        }
+      },
+      patch: {
+        tags: ["Auth"],
+        summary: "Update authenticated customer profile",
+        security: bearerSecurity,
+        requestBody: body("#/components/schemas/UpdateProfile"),
+        responses: {
+          "200": response("Authenticated customer updated", "#/components/schemas/Customer"),
+          "401": response("Invalid access token", "#/components/schemas/ErrorResponse"),
+          "409": response("Customer email already exists", "#/components/schemas/ErrorResponse")
         }
       }
     },
@@ -611,8 +623,7 @@ export const openApiDocument: OpenAPIObject = {
           name: { type: "string", minLength: 2, maxLength: 100 },
           email: { type: "string", format: "email", maxLength: 255 },
           password: { type: "string", minLength: 8, maxLength: 72, format: "password" },
-          phone: { type: "string", minLength: 8, maxLength: 20 },
-          address: { type: "string", minLength: 5, maxLength: 255 }
+          phone: { type: "string", minLength: 8, maxLength: 20 }
         },
         required: ["name", "email", "password"]
       },
@@ -631,6 +642,16 @@ export const openApiDocument: OpenAPIObject = {
           accessToken: { type: "string" }
         },
         required: ["customer", "accessToken"]
+      },
+      UpdateProfile: {
+        type: "object",
+        properties: {
+          name: { type: "string", minLength: 2, maxLength: 100 },
+          email: { type: "string", format: "email", maxLength: 255 },
+          phone: { type: "string", minLength: 8, maxLength: 20 },
+          address: { type: "string", minLength: 5, maxLength: 255 }
+        },
+        required: ["name", "email"]
       },
       Customer: customerSchema,
       CreateCustomer: {
@@ -707,6 +728,8 @@ export const openApiDocument: OpenAPIObject = {
       Reservation: reservationSchema,
       CreateReservation: {
         type: "object",
+        description:
+          "A reserva precisa estar no futuro e dentro do horário de funcionamento: terça a quinta 18:00-22:30, sexta 18:00-23:30, sábado 12:00-23:30 e domingo 12:00-16:00. Segunda-feira fechado.",
         properties: {
           reservationDate: { type: "string", format: "date-time" },
           peopleCount: { type: "integer", minimum: 1, maximum: 20 },

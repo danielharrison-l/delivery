@@ -1,0 +1,3 @@
+CREATE TYPE "CustomerRole" AS ENUM ('CUSTOMER', 'ADMIN');
+
+ALTER TABLE "Customer" ADD COLUMN "role" "CustomerRole" NOT NULL DEFAULT 'CUSTOMER';

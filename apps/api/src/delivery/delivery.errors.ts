@@ -1,5 +1,5 @@
 export const deliveryErrors = {
-  notFound: "Delivery order not found",
-  customerNotFound: "Customer not found",
-  unavailableItems: "One or more menu items are unavailable"
+  notFound: "Pedido não encontrado",
+  customerNotFound: "Cliente não encontrado",
+  unavailableItems: "Um ou mais itens estão indisponíveis"
 } as const;

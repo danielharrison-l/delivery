@@ -1,68 +1,73 @@
 import { PrismaClient } from "@prisma/client";
+import { randomBytes, scrypt } from "node:crypto";
+import { promisify } from "node:util";
 
 const prisma = new PrismaClient();
+const scryptAsync = promisify(scrypt);
+const adminEmail = "admin@terraco.test";
+const adminPassword = "Admin12345";
 
 const categories = [
   {
-    name: "Starters",
-    description: "Small plates to start the meal",
+    name: "Entradas",
+    description: "Porções leves para começar a refeição",
     items: [
       {
         name: "Bruschetta",
-        description: "Toasted bread with tomato, basil and olive oil",
+        description: "Pão tostado com tomate, manjericão e azeite",
         price: "24.90"
       },
       {
-        name: "Crispy Polenta",
-        description: "Golden polenta sticks with house sauce",
+        name: "Polenta Crocante",
+        description: "Palitos de polenta dourados com molho da casa",
         price: "22.90"
       }
     ]
   },
   {
-    name: "Main Dishes",
-    description: "Signature dishes from the kitchen",
+    name: "Pratos principais",
+    description: "Pratos autorais da cozinha",
     items: [
       {
-        name: "Grilled Steak",
-        description: "Steak with roasted potatoes and chimichurri",
+        name: "Bife Grelhado",
+        description: "Bife com batatas assadas e chimichurri",
         price: "68.90"
       },
       {
-        name: "Mushroom Risotto",
-        description: "Creamy risotto with fresh mushrooms and parmesan",
+        name: "Risoto de Cogumelos",
+        description: "Risoto cremoso com cogumelos frescos e parmesão",
         price: "54.90"
       }
     ]
   },
   {
-    name: "Drinks",
-    description: "Cold drinks and house beverages",
+    name: "Bebidas",
+    description: "Bebidas geladas e opções da casa",
     items: [
       {
-        name: "Fresh Lemonade",
-        description: "Lemonade with mint and sparkling water",
+        name: "Limonada Fresca",
+        description: "Limonada com hortelã e água com gás",
         price: "14.90"
       },
       {
-        name: "Iced Tea",
-        description: "Black tea with citrus and ice",
+        name: "Chá Gelado",
+        description: "Chá preto com cítricos e gelo",
         price: "12.90"
       }
     ]
   },
   {
-    name: "Desserts",
-    description: "Sweet options to finish",
+    name: "Sobremesas",
+    description: "Opções doces para finalizar",
     items: [
       {
-        name: "Chocolate Brownie",
-        description: "Warm brownie with vanilla cream",
+        name: "Brownie de Chocolate",
+        description: "Brownie morno com creme de baunilha",
         price: "26.90"
       },
       {
         name: "Panna Cotta",
-        description: "Cream dessert with red fruit sauce",
+        description: "Sobremesa cremosa com calda de frutas vermelhas",
         price: "24.90"
       }
     ]
@@ -70,25 +75,62 @@ const categories = [
 ];
 
 async function main() {
+  await prisma.customer.upsert({
+    where: { email: adminEmail },
+    update: {
+      role: "ADMIN"
+    },
+    create: {
+      name: "Admin Terraço",
+      email: adminEmail,
+      passwordHash: await hashPassword(adminPassword),
+      role: "ADMIN"
+    }
+  });
+
   for (const category of categories) {
-    await prisma.menuCategory.upsert({
+    const menuCategory = await prisma.menuCategory.upsert({
       where: { name: category.name },
       update: {
-        description: category.description,
-        items: {
-          deleteMany: {},
-          create: category.items
-        }
+        description: category.description
       },
       create: {
         name: category.name,
-        description: category.description,
-        items: {
-          create: category.items
-        }
+        description: category.description
       }
     });
+
+    for (const item of category.items) {
+      const existingItem = await prisma.menuItem.findFirst({
+        where: {
+          name: item.name,
+          categoryId: menuCategory.id
+        }
+      });
+
+      if (existingItem) {
+        await prisma.menuItem.update({
+          where: { id: existingItem.id },
+          data: item
+        });
+        continue;
+      }
+
+      await prisma.menuItem.create({
+        data: {
+          ...item,
+          categoryId: menuCategory.id
+        }
+      });
+    }
   }
+}
+
+async function hashPassword(password: string): Promise<string> {
+  const salt = randomBytes(16).toString("hex");
+  const key = (await scryptAsync(password, salt, 64)) as Buffer;
+
+  return `scrypt$${salt}$${Buffer.from(key).toString("hex")}`;
 }
 
 void main()

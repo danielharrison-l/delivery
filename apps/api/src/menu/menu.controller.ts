@@ -12,6 +12,7 @@ import {
   type UpdateMenuItemInput
 } from "@repo/shared";
 import { ZodValidationPipe } from "../common/pipes/zod-validation.pipe";
+import { AdminGuard } from "../auth/admin.guard";
 import { AuthGuard } from "../auth/auth.guard";
 import { MenuService } from "./menu.service";
 
@@ -30,13 +31,13 @@ export class MenuController {
   }
 
   @Post("categories")
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, AdminGuard)
   createCategory(@Body(new ZodValidationPipe(createMenuCategorySchema)) data: CreateMenuCategoryInput) {
     return this.menuService.createCategory(data);
   }
 
   @Patch("categories/:id")
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, AdminGuard)
   updateCategory(
     @Param("id", new ParseUUIDPipe()) id: string,
     @Body(new ZodValidationPipe(updateMenuCategorySchema)) data: UpdateMenuCategoryInput
@@ -45,7 +46,7 @@ export class MenuController {
   }
 
   @Delete("categories/:id")
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, AdminGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   removeCategory(@Param("id", new ParseUUIDPipe()) id: string) {
     return this.menuService.removeCategory(id);
@@ -62,13 +63,13 @@ export class MenuController {
   }
 
   @Post("items")
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, AdminGuard)
   createItem(@Body(new ZodValidationPipe(createMenuItemSchema)) data: CreateMenuItemInput) {
     return this.menuService.createItem(data);
   }
 
   @Patch("items/:id")
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, AdminGuard)
   updateItem(
     @Param("id", new ParseUUIDPipe()) id: string,
     @Body(new ZodValidationPipe(updateMenuItemSchema)) data: UpdateMenuItemInput
@@ -77,7 +78,7 @@ export class MenuController {
   }
 
   @Delete("items/:id")
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, AdminGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   removeItem(@Param("id", new ParseUUIDPipe()) id: string) {
     return this.menuService.removeItem(id);

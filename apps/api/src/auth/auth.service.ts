@@ -9,6 +9,7 @@ import { AUTH_REPOSITORY } from "./auth.tokens";
 import type {
   AuthCustomerRecord,
   AuthLoginData,
+  AuthProfileUpdateData,
   AuthRegisterData,
   AuthSessionWithRefreshToken,
   AuthenticatedCustomer,
@@ -100,6 +101,15 @@ export class AuthService {
   async me(customerId: string): Promise<AuthenticatedCustomer> {
     const customer = await this.findCustomerOrFail(customerId);
     return authMapper.toCustomerDto(customer);
+  }
+
+  async updateProfile(customerId: string, data: AuthProfileUpdateData): Promise<AuthenticatedCustomer> {
+    try {
+      const customer = await this.authRepository.updateCustomer(customerId, authMapper.toCustomerUpdateData(data));
+      return authMapper.toCustomerDto(customer);
+    } catch (error) {
+      this.handleDatabaseError(error);
+    }
   }
 
   async getAuthenticatedCustomer(customerId: string): Promise<AuthenticatedCustomer> {

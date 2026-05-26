@@ -5,3 +5,4 @@ export * from "./health";
 export * from "./menu";
 export * from "./pagination";
 export * from "./reservations";
+export * from "./restaurant";

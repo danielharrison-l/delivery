@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import type {
   AuthCustomerRecord,
+  AuthProfileUpdateData,
   AuthRegisterData,
   AuthSessionDto,
   AuthSessionWithRefreshToken,
@@ -20,8 +21,16 @@ function toCustomerCreateData(data: AuthRegisterData, passwordHash: string): Pri
     name: data.name,
     email: data.email,
     passwordHash,
-    phone: data.phone || undefined,
-    address: data.address || undefined
+    phone: data.phone || undefined
+  };
+}
+
+function toCustomerUpdateData(data: AuthProfileUpdateData): Prisma.CustomerUpdateInput {
+  return {
+    name: data.name,
+    email: data.email,
+    phone: data.phone || null,
+    address: data.address || null
   };
 }
 
@@ -46,6 +55,7 @@ function toSessionWithRefreshTokenDto(
 export const authMapper = {
   toCustomerDto,
   toCustomerCreateData,
+  toCustomerUpdateData,
   toSessionDto,
   toSessionWithRefreshTokenDto
 } as const;

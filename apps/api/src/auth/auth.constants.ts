@@ -31,6 +31,7 @@ export const authCustomerSelect = {
   name: true,
   email: true,
   phone: true,
+  role: true,
   address: true,
   createdAt: true,
   updatedAt: true

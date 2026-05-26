@@ -1,5 +1,12 @@
-import { Body, Controller, Get, Headers, HttpCode, HttpStatus, Post, Res, UseGuards } from "@nestjs/common";
-import { loginSchema, registerSchema, type LoginInput, type RegisterInput } from "@repo/shared";
+import { Body, Controller, Get, Headers, HttpCode, HttpStatus, Patch, Post, Res, UseGuards } from "@nestjs/common";
+import {
+  loginSchema,
+  registerSchema,
+  updateProfileSchema,
+  type LoginInput,
+  type RegisterInput,
+  type UpdateProfileInput
+} from "@repo/shared";
 import { ZodValidationPipe } from "../common/pipes/zod-validation.pipe";
 import {
   authClearRefreshTokenCookieOptions,
@@ -67,6 +74,15 @@ export class AuthController {
   @UseGuards(AuthGuard)
   me(@CurrentUser() customer: AuthenticatedCustomer) {
     return customer;
+  }
+
+  @Patch("me")
+  @UseGuards(AuthGuard)
+  updateProfile(
+    @CurrentUser() customer: AuthenticatedCustomer,
+    @Body(new ZodValidationPipe(updateProfileSchema)) data: UpdateProfileInput
+  ) {
+    return this.authService.updateProfile(customer.id, data);
   }
 
   private setRefreshTokenCookie(response: CookieResponse, refreshToken: string): void {

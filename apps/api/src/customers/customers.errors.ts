@@ -1,4 +1,4 @@
 export const customersErrors = {
-  notFound: "Customer not found",
-  emailAlreadyExists: "Customer email already exists"
+  notFound: "Cliente não encontrado",
+  emailAlreadyExists: "Já existe um cliente com este e-mail"
 } as const;

@@ -1,19 +1,24 @@
 import { z } from "zod";
 import { customerSchema } from "./customers";
 import { paginationMetaSchema, paginationQuerySchema } from "./pagination";
+import { getReservationDateValidationMessage } from "./restaurant";
 
 export const reservationStatusSchema = z.enum(["PENDING", "CONFIRMED", "CANCELLED"]);
 
-export const createReservationSchema = z.object({
+const createReservationBaseSchema = z.object({
   customerId: z.string().uuid(),
   reservationDate: z.string().datetime(),
   peopleCount: z.coerce.number().int().min(1).max(20),
   notes: z.string().trim().max(500).optional().or(z.literal(""))
 });
 
-export const createAuthenticatedReservationSchema = createReservationSchema.omit({
-  customerId: true
-});
+export const createReservationSchema = createReservationBaseSchema.superRefine(validateReservationDate);
+
+export const createAuthenticatedReservationSchema = createReservationBaseSchema
+  .omit({
+    customerId: true
+  })
+  .superRefine(validateReservationDate);
 
 export const updateReservationStatusSchema = z.object({
   status: reservationStatusSchema
@@ -43,6 +48,18 @@ export const paginatedReservationsSchema = z.object({
   data: reservationsSchema,
   meta: paginationMetaSchema
 });
+
+function validateReservationDate(value: { reservationDate: string }, context: z.RefinementCtx): void {
+  const message = getReservationDateValidationMessage(value.reservationDate);
+
+  if (message) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["reservationDate"],
+      message
+    });
+  }
+}
 
 export type CreateReservationInput = z.infer<typeof createReservationSchema>;
 export type CreateAuthenticatedReservationInput = z.infer<typeof createAuthenticatedReservationSchema>;
