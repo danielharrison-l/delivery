@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "pnpm --filter @repo/shared build && turbo dev --parallel",
     "build": "turbo build",
+    "build:api": "pnpm --filter @repo/shared build && pnpm --filter @repo/api build",
+    "build:web": "pnpm --filter @repo/shared build && pnpm --filter @repo/web build",
     "typecheck": "turbo typecheck",
     "format": "prettier --write \"**/*.{ts,tsx,js,json,md,css}\"",
     "db:generate": "pnpm --filter @repo/api db:generate",
@@ -13,6 +15,7 @@
     "db:deploy": "pnpm --filter @repo/api db:deploy",
     "db:seed": "pnpm --filter @repo/api db:seed",
     "db:studio": "pnpm --filter @repo/api db:studio",
+    "start:api": "pnpm --filter @repo/api start",
     "docker:up": "docker compose up --build",
     "docker:down": "docker compose down"
   },

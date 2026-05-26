@@ -136,11 +136,77 @@ Se alguma porta estiver ocupada:
 WEB_PORT=5174 API_PORT=3334 POSTGRES_PORT=5433 docker compose up --build
 ```
 
+## Deploy
+
+### Banco no Neon
+
+Crie um projeto PostgreSQL no Neon e copie a connection string. Use a URL com SSL, normalmente neste formato:
+
+```txt
+postgresql://user:password@host/dbname?sslmode=require
+```
+
+Essa URL será usada como `DATABASE_URL` na API.
+
+### API no Render
+
+Crie um Web Service no Render apontando para este repositório.
+
+Configuração recomendada:
+
+```txt
+Environment: Docker
+Dockerfile Path: apps/api/Dockerfile
+```
+
+Variáveis de ambiente:
+
+```txt
+DATABASE_URL=postgresql://user:password@host/dbname?sslmode=require
+PORT=3333
+CORS_ORIGIN=https://sua-url-da-vercel.vercel.app
+AUTH_ACCESS_TOKEN_SECRET=troque-por-uma-chave-grande
+AUTH_ACCESS_TOKEN_EXPIRES_IN_SECONDS=900
+AUTH_REFRESH_TOKEN_EXPIRES_IN_SECONDS=604800
+AUTH_REFRESH_TOKEN_COOKIE_SECURE=true
+```
+
+O container da API executa migrations e seed ao iniciar.
+
+Após publicar, teste:
+
+```txt
+https://sua-api.onrender.com/api/health
+https://sua-api.onrender.com/api/docs
+```
+
+### Frontend na Vercel
+
+O projeto já possui `vercel.json` na raiz.
+
+Configuração esperada:
+
+```txt
+Build Command: pnpm build:web
+Output Directory: apps/web/dist
+Install Command: pnpm install --frozen-lockfile
+```
+
+Variável de ambiente:
+
+```txt
+VITE_API_URL=https://sua-api.onrender.com/api
+```
+
+Depois do deploy da Vercel, volte no Render e atualize `CORS_ORIGIN` com a URL final do frontend.
+
 ## Scripts
 
 ```bash
 pnpm dev
 pnpm build
+pnpm build:api
+pnpm build:web
 pnpm typecheck
 pnpm db:generate
 pnpm db:migrate
